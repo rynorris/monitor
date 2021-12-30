@@ -32,7 +32,7 @@ export async function decrypt(key: CryptoKey, data: BufferSource, iv: BufferSour
 	);
 }
 
-export async function generateKeyPair(): Promise<CryptoKeyPair> {
+export async function generateSigningKeyPair(): Promise<CryptoKeyPair> {
 	return window.crypto.subtle.generateKey(
 		{
 			name: "ECDSA",
