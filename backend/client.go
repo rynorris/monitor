@@ -48,6 +48,8 @@ func NewClient(hub *Hub, conn *websocket.Conn) *Client {
 		subscriptions: make(map[string]bool),
 	}
 
+	log.Print("New client connected")
+
 	go client.readPump()
 	go client.writePump()
 
@@ -61,7 +63,11 @@ func (c *Client) readPump() {
 
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	c.conn.SetPongHandler(func(string) error {
+		log.Printf("PONG")
+		c.conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
 
 	for {
 		_, data, err := c.conn.ReadMessage()
@@ -69,6 +75,7 @@ func (c *Client) readPump() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure, websocket.CloseGoingAway) {
 				log.Printf("unexpected error: %v", err)
 			}
+			log.Printf("Client disconnected")
 			c.hub.unregister <- c
 			break
 		}
@@ -107,6 +114,8 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case msg, ok := <-c.send:
+			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+
 			if !ok {
 				// Send channel was closed.
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
@@ -122,6 +131,7 @@ func (c *Client) writePump() {
 				return
 			}
 		case <-ticker.C:
+			log.Printf("PING")
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return

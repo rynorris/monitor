@@ -5,20 +5,28 @@ import * as Uuid from "uuid";
 
 type Handler = (data: ArrayBuffer) => void;
 
+type StreamStatus = "disconnected" | "pending" | "connected";
+
 export class Client {
 	private ws?: PersistentWebSocket;
-	private subscriptions: Record<string, boolean> = {};
+	private streams: Record<string, StreamStatus> = {};
 	private consumers: Record<string, StreamConsumer> = {};
 	private producers: Record<string, StreamProducer> = {};
 	private handlers: Record<string, Array<Handler>> = {};
+	private syncInterval: ReturnType<typeof setInterval> | null = null;
 
 	public connect(url: string) {
 		this.ws = new PersistentWebSocket(url);
-		const syncInterval = setInterval(this.synchronize.bind(this), 1000);
-		const stopSyncing = () => clearInterval(syncInterval);
 
-		this.ws.onopen = this.synchronize.bind(this);
+		this.ws.onopen = () => {
+			console.log(this);
+			this.streams = {};
+			this.synchronize();
+			this.syncInterval = setInterval(this.synchronize.bind(this), 1000);
+		};
 		this.ws.onmessage = this.handleMessage.bind(this);
+
+		const stopSyncing = () => this.syncInterval && clearInterval(this.syncInterval);
 		this.ws.onclose = stopSyncing;
 	}
 
@@ -79,11 +87,11 @@ export class Client {
 				throw new Error("Received subscribe message from server");
 			case "subscribe-failure":
 				console.error(`Failed to subscribe to stream ${msg.streamId}: ${msg.reason}`);
-				this.subscriptions[msg.streamId] = false;
+				this.streams[msg.streamId] = "disconnected";
 				break;
 			case "subscribe-success":
 				console.log(`Successfully subscribed to stream ${msg.streamId}`);
-				this.subscriptions[msg.streamId] = true;
+				this.streams[msg.streamId] = "connected";
 				break;
 			case "encrypted-data":
 				const handlers = this.handlers[msg.streamId] ?? [];
@@ -110,23 +118,23 @@ export class Client {
 		}
 
 		// Unsubscribe from streams with no handlers.
-		Object.keys(this.subscriptions).forEach(streamId => {
+		Object.keys(this.streams).forEach(streamId => {
 			const handlers = this.handlers[streamId] ?? [];
 			if (handlers.length === 0) {
 				console.log(`Disconnecting from stream ${streamId}`);
 				// TODO: unsubscribe.
 
-				delete this.subscriptions[streamId];
+				delete this.streams[streamId];
 			}
 		});
 
 		// Subscribe to streams with handlers.
 		Object.keys(this.handlers).forEach(streamId => {
-			const connected = this.subscriptions[streamId] || false;
+			const status = this.streams[streamId] ?? "disconnected";
 
-			if (!connected) {
+			if (status === "disconnected") {
 				console.log(`Connecting to stream ${streamId}`);
-				this.subscriptions[streamId] = false;
+				this.streams[streamId] = "pending";
 				this.sendMessage({ type: "subscribe", streamId });
 			}
 		});
