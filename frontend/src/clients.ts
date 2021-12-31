@@ -14,12 +14,16 @@ export class Client {
 
 	public connect(url: string) {
 		this.ws = new PersistentWebSocket(url);
-		const syncInterval = setInterval(this.synchronize, 1000);
+		const syncInterval = setInterval(this.synchronize.bind(this), 1000);
 		const stopSyncing = () => clearInterval(syncInterval);
 
-		this.ws.onopen = this.synchronize;
-		this.ws.onmessage = this.handleMessage;
+		this.ws.onopen = this.synchronize.bind(this);
+		this.ws.onmessage = this.handleMessage.bind(this);
 		this.ws.onclose = stopSyncing;
+	}
+
+	public close() {
+		this.ws?.close();
 	}
 
 	public registerConsumer(consumer: StreamConsumer) {
@@ -35,9 +39,9 @@ export class Client {
 	public subscribe(streamId: string, handler: Handler) {
 		if (handler != null) {
 			if (this.handlers[streamId] == null) {
-				this.handlers.streamId = [];
+				this.handlers[streamId] = [];
 			}
-			this.handlers.streamId.push(handler);
+			this.handlers[streamId].push(handler);
 		}
 
 		this.synchronize();
@@ -68,8 +72,8 @@ export class Client {
 		this.sendMessage(encryptedData);
 	}
 
-	private async handleMessage(ev: MessageEvent<ApiMessage>) {
-		const msg = ev.data;
+	private async handleMessage(ev: MessageEvent<any>) {
+		const msg = JSON.parse(ev.data);
 		switch (msg.type) {
 			case "subscribe":
 				throw new Error("Received subscribe message from server");
@@ -101,6 +105,10 @@ export class Client {
 	}
 
 	private synchronize() {
+		if (!this.ws?.connected) {
+			return;
+		}
+
 		// Unsubscribe from streams with no handlers.
 		Object.keys(this.subscriptions).forEach(streamId => {
 			const handlers = this.handlers[streamId] ?? [];
@@ -114,10 +122,10 @@ export class Client {
 
 		// Subscribe to streams with handlers.
 		Object.keys(this.handlers).forEach(streamId => {
-			console.log(`Connecting to stream ${streamId}`);
 			const connected = this.subscriptions[streamId] || false;
 
 			if (!connected) {
+				console.log(`Connecting to stream ${streamId}`);
 				this.subscriptions[streamId] = false;
 				this.sendMessage({ type: "subscribe", streamId });
 			}
@@ -133,6 +141,8 @@ export class Client {
 class PersistentWebSocket {
 	private url: string;
 	private ws: WebSocket | null = null;
+
+	public connected: boolean = false;
 	public onopen: (() => void) | null = null;
 	public onmessage: ((ev: MessageEvent<any>) => void) | null = null;
 	public onclose: (() => void) | null = null;
@@ -141,7 +151,7 @@ class PersistentWebSocket {
 	constructor(url: string) {
 		this.url = url;
 		this.check();
-		this.checkInterval = setInterval(this.check, 1000);
+		this.checkInterval = setInterval(this.check.bind(this), 1000);
 	}
 
 	public send(data: string | ArrayBufferLike | ArrayBufferView | Blob) {
@@ -157,18 +167,20 @@ class PersistentWebSocket {
 	private check() {
 		if (this.ws == null) {
 			const ws = new WebSocket(this.url);
-			ws.onopen = this.handleOpen;
-			ws.onclose = this.handleClose;
-			ws.onmessage = this.handleMessage;
+			ws.onopen = this.handleOpen.bind(this);
+			ws.onclose = this.handleClose.bind(this);
+			ws.onmessage = this.handleMessage.bind(this);
 			this.ws = ws;
 		}
 	}
 
 	private handleOpen() {
+		this.connected = true;
 		this.onopen?.();
 	}
 
 	private handleClose() {
+		this.connected = false;
 		this.ws = null;
 	}
 
