@@ -1,7 +1,7 @@
 import { EncryptedMessage } from "./api";
 import { decrypt, encrypt, generateEncryptionKey, generateSigningKeyPair, sign, verify } from "./crypto";
 import { Base64 } from "js-base64";
-import Uuid from "uuid";
+import * as Uuid from "uuid";
 
 export interface Stream {
 	streamId: string;
@@ -29,7 +29,7 @@ export async function newStream(name: string): Promise<StreamProducer> {
 
 export async function pack(producer: StreamProducer, data: BufferSource): Promise<EncryptedMessage> {
 	const { streamId, encryptionKey, signingKeyPair } = producer;
-	const iv = window.crypto.getRandomValues(new Uint8Array(16));
+	const iv = window.crypto.getRandomValues(new Uint8Array(12));
 	const encryptedData = await encrypt(encryptionKey, iv, data);
 
 	const signature = await sign(signingKeyPair.privateKey!, encryptedData);
@@ -51,5 +51,5 @@ export async function unpack(consumer: StreamConsumer, encryptedMessage: Encrypt
 		throw new Error("Message signature is not valid");
 	}
 
-	return decrypt(encryptionKey, Base64.toUint8Array(b64Data), Base64.toUint8Array(b64Iv));
+	return decrypt(encryptionKey, Base64.toUint8Array(b64Iv), Base64.toUint8Array(b64Data));
 }

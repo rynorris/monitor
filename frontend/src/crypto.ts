@@ -1,6 +1,6 @@
 
 export async function generateEncryptionKey(): Promise<CryptoKey> {
-	return window.crypto.subtle.generateKey(
+	return crypto.subtle.generateKey(
 		{
 			name: "AES-GCM",
 			length: 256,
@@ -10,8 +10,8 @@ export async function generateEncryptionKey(): Promise<CryptoKey> {
 	);
 }
 
-export async function encrypt(key: CryptoKey, data: BufferSource, iv: BufferSource): Promise<ArrayBuffer> {
-	return window.crypto.subtle.encrypt(
+export async function encrypt(key: CryptoKey, iv: BufferSource, data: BufferSource): Promise<ArrayBuffer> {
+	return crypto.subtle.encrypt(
 		{
 			name: "AES-GCM",
 			iv,
@@ -21,8 +21,8 @@ export async function encrypt(key: CryptoKey, data: BufferSource, iv: BufferSour
 	);
 }
 
-export async function decrypt(key: CryptoKey, data: BufferSource, iv: BufferSource): Promise<ArrayBuffer> {
-	return window.crypto.subtle.decrypt(
+export async function decrypt(key: CryptoKey, iv: BufferSource, data: BufferSource): Promise<ArrayBuffer> {
+	return crypto.subtle.decrypt(
 		{
 			name: "AES-GCM",
 			iv,
@@ -33,7 +33,7 @@ export async function decrypt(key: CryptoKey, data: BufferSource, iv: BufferSour
 }
 
 export async function generateSigningKeyPair(): Promise<CryptoKeyPair> {
-	return window.crypto.subtle.generateKey(
+	return crypto.subtle.generateKey(
 		{
 			name: "ECDSA",
 			namedCurve: "P-256",
@@ -44,9 +44,10 @@ export async function generateSigningKeyPair(): Promise<CryptoKeyPair> {
 }
 
 export async function sign(key: CryptoKey, data: BufferSource): Promise<ArrayBuffer> {
-	return window.crypto.subtle.sign(
+	return crypto.subtle.sign(
 		{
 			name: "ECDSA",
+			hash: "SHA-256",
 		},
 		key,
 		data,
@@ -54,9 +55,10 @@ export async function sign(key: CryptoKey, data: BufferSource): Promise<ArrayBuf
 }
 
 export async function verify(key: CryptoKey, signature: BufferSource, data: BufferSource): Promise<boolean> {
-	return window.crypto.subtle.verify(
+	return crypto.subtle.verify(
 		{
 			name: "ECDSA",
+			hash: "SHA-256",
 		},
 		key,
 		signature,
