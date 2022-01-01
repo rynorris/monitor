@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { store } from "./state/store";
 import { Home } from './Home';
 import { Broadcast } from "./Broadcast";
+import { Watch } from './Watch';
 
 function App() {
     return (
@@ -14,6 +15,7 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/broadcast" element={<Broadcast />} />
+                        <Route path="/watch/:streamId" element={<Watch />} />
                     </Routes>
                 </BrowserRouter>
             </Provider>

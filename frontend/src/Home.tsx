@@ -1,9 +1,8 @@
 import { Button, Divider, Flex, Heading } from "@chakra-ui/react";
 import React from "react";
-import { freezeConsumer, freezeProducer, newStream, StreamConsumer, StreamProducer } from "./clients";
+import { newStream, StreamConsumer, StreamProducer } from "./clients";
 import { selectConsumers } from "./state/consumersSlice";
 import { useAppDispatch, useAppSelector } from "./state/store";
-import { registerConsumer, registerProducer } from "./state/thunks";
 
 export const Home: React.FC = () => {
     const consumers = useAppSelector(selectConsumers);
@@ -15,8 +14,10 @@ export const Home: React.FC = () => {
             const producer: StreamProducer = await newStream("Test");
             const consumer: StreamConsumer = { ...producer, signingPublicKey: producer.signingKeyPair.publicKey! };
 
+            /*
             dispatch(registerProducer(await freezeProducer(producer)));
             dispatch(registerConsumer(await freezeConsumer(consumer)));
+            */
         })()
     }, [dispatch]);
 
