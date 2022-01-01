@@ -29,8 +29,8 @@ export const Watch: React.FC = () => {
 	}, [handleMessage, streamId]);
 
 	return (
-		<Flex direction="column">
-			<img ref={image} alt="video stream" />
+		<Flex direction="column" width="100%" height="100vh">
+			<img ref={image} alt="video stream" style={{ flex: "none" }} />
 		</Flex>
 	)
 };

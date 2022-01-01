@@ -16,6 +16,7 @@
     "@types/react": "^17.0.20",
     "@types/react-dom": "^17.0.9",
     "framer-motion": "^5",
+    "html5-qrcode": "^2.1.6",
     "js-base64": "^3.7.2",
     "qrcode": "^1.5.0",
     "react": "^17.0.2",

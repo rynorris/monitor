@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { FrozenConsumer, FrozenProducer, getClient, thawConsumer, thawProducer } from "../clients";
+import { freezeProducer, FrozenConsumer, FrozenProducer, getClient, newStream, thawConsumer, thawProducer } from "../clients";
 import { addConsumer } from "./consumersSlice";
 import { CONSUMERS_STORAGE_KEY, load, PRODUCER_STORAGE_KEY, save } from "./persistence";
 import { setProducer } from "./producerSlice";
@@ -13,6 +13,9 @@ export const bootstrapClient = createAsyncThunk(
         const frozenProducer: FrozenProducer | undefined = load(PRODUCER_STORAGE_KEY, undefined);
         if (frozenProducer != null) {
             dispatch(registerProducer(frozenProducer));
+        } else {
+            const newProducer = await newStream("Test");
+            dispatch(registerProducer(await freezeProducer(newProducer)));
         }
     },
 )

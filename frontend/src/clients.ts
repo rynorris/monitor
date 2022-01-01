@@ -12,7 +12,7 @@ let globalClient: Client | null = null;
 export function getClient(): Client {
 	if (globalClient == null) {
 		globalClient = new Client();
-		globalClient.connect("ws://localhost:8080/ws");
+		globalClient.connect("wss://192.168.49.77:8080/ws");
 	}
 
 	return globalClient;
