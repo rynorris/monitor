@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import consumersSlice from "./consumersSlice";
 import producerSlice from "./producerSlice";
+import { bootstrapClient } from "./thunks";
 
 export const store = configureStore({
     reducer: {
@@ -9,6 +10,8 @@ export const store = configureStore({
         producer: producerSlice,
     },
 });
+
+store.dispatch(bootstrapClient());
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

@@ -1,11 +1,22 @@
 import { ApiMessage, EncryptedData } from "./api";
-import { decrypt, encrypt, generateEncryptionKey, generateSigningKeyPair, sign, verify } from "./crypto";
+import { decrypt, encrypt, exportKey, generateEncryptionKey, generateSigningKeyPair, importEncryptionKey, importSigningKey, importSigningKeyPair, sign, verify } from "./crypto";
 import { Base64 } from "js-base64";
 import * as Uuid from "uuid";
 
 type Handler = (data: ArrayBuffer) => void;
 
 type StreamStatus = "disconnected" | "pending" | "connected";
+
+let globalClient: Client | null = null;
+
+export function getClient(): Client {
+	if (globalClient == null) {
+		globalClient = new Client();
+		globalClient.connect("ws://localhost:8080");
+	}
+
+	return globalClient;
+}
 
 export class Client {
 	private ws?: PersistentWebSocket;
@@ -163,7 +174,9 @@ class PersistentWebSocket {
 	}
 
 	public send(data: string | ArrayBufferLike | ArrayBufferView | Blob) {
-		this.ws?.send(data);
+		if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+			this.ws.send(data);
+		}
 	}
 
 	public close() {
@@ -247,4 +260,61 @@ export async function unpack(consumer: StreamConsumer, encryptedMessage: Encrypt
 	}
 
 	return decrypt(encryptionKey, Base64.toUint8Array(b64Iv), Base64.toUint8Array(b64Data));
+}
+
+export type FrozenConsumer = Omit<StreamConsumer, "encryptionKey" | "signingPublicKey"> & {
+	encryptionKey: JsonWebKey;
+	signingPublicKey: JsonWebKey;
+};
+
+export async function freezeConsumer(consumer: StreamConsumer): Promise<FrozenConsumer> {
+	return {
+		name: consumer.name,
+		streamId: consumer.streamId,
+		encryptionKey: await exportKey(consumer.encryptionKey),
+		signingPublicKey: await exportKey(consumer.signingPublicKey),
+	};
+}
+
+export async function thawConsumer(frozen: FrozenConsumer): Promise<StreamConsumer> {
+	const { name, streamId, encryptionKey, signingPublicKey } = frozen;
+
+	return {
+		name,
+		streamId,
+		encryptionKey: await importEncryptionKey(encryptionKey),
+		signingPublicKey: await importSigningKey(signingPublicKey, ["verify"]),
+	}
+}
+
+export type FrozenProducer = Omit<StreamProducer, "encryptionKey" | "signingKeyPair"> & {
+	encryptionKey: JsonWebKey;
+	signingKeyPair: {
+		publicKey: JsonWebKey;
+		privateKey: JsonWebKey;
+	};
+};
+
+export async function freezeProducer(producer: StreamProducer): Promise<FrozenProducer> {
+	return {
+		name: producer.name,
+		streamId: producer.streamId,
+		encryptionKey: await exportKey(producer.encryptionKey),
+		signingKeyPair: {
+			publicKey: await exportKey(producer.signingKeyPair.publicKey!),
+			privateKey: await exportKey(producer.signingKeyPair.privateKey!),
+		},
+	}
+}
+
+export async function thawProducer(frozen: FrozenProducer): Promise<StreamProducer> {
+	const { name, streamId, encryptionKey, signingKeyPair } = frozen;
+	const { publicKey, privateKey } = signingKeyPair;
+
+	return {
+		name,
+		streamId,
+		encryptionKey: await importEncryptionKey(encryptionKey),
+		signingKeyPair: await importSigningKeyPair(publicKey, privateKey),
+	};
 }

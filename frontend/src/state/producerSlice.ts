@@ -1,25 +1,19 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { StreamProducer } from "../clients";
-import { load, save } from "./persistence";
+import { FrozenProducer } from "../clients";
 import { RootState } from "./store";
 
-const PRODUCER_STORAGE_KEY = "producer.v1";
-
 interface ProducerState {
-    producer?: StreamProducer;
+    producer?: FrozenProducer;
 }
 
-const initialState: ProducerState = {
-    producer: load(PRODUCER_STORAGE_KEY, undefined),
-};
+const initialState: ProducerState = {};
 
 export const producerSlice = createSlice({
     name: "producer",
     initialState,
     reducers: {
-        setProducer: (state, action: PayloadAction<StreamProducer>) => {
+        setProducer: (state, action: PayloadAction<FrozenProducer>) => {
             state.producer = action.payload;
-            save(PRODUCER_STORAGE_KEY, state.producer);
         },
     },
 });
