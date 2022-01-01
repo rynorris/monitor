@@ -2,9 +2,10 @@ import React from "react";
 import { selectProducer } from "./state/producerSlice";
 import { useAppSelector } from "./state/store";
 import { useMediaStream } from "./hooks/useMediaStream";
-import { Flex, useInterval } from "@chakra-ui/react";
+import { Button, Flex, Modal, ModalContent, ModalOverlay, Spacer, useDisclosure, useInterval } from "@chakra-ui/react";
 import { getClient } from "./clients";
 import { VideoFrame } from "./api";
+import { ShareQRCode } from "./components/ShareQRCode";
 
 export const Broadcast: React.FC = () => {
 	const producer = useAppSelector(selectProducer);
@@ -49,10 +50,24 @@ export const Broadcast: React.FC = () => {
 
 	useInterval(processStream, 200);
 
+	const { isOpen, onOpen, onClose } = useDisclosure();
+
+	if (producer == null) {
+		return null;
+	}
+
 	return (
-		<Flex direction="column">
-			<video ref={video} playsInline={true} />
+		<Flex direction="column" height="100vh">
+			<video ref={video} playsInline={true} style={{ display: "none" }} />
 			<canvas ref={canvas} />
+			<Spacer />
+			<Button onClick={onOpen}>My QR Code</Button>
+			<Modal isOpen={isOpen} onClose={onClose}>
+				<ModalOverlay />
+				<ModalContent>
+					<ShareQRCode producer={producer} />
+				</ModalContent>
+			</Modal>
 		</Flex>
 	);
 };
