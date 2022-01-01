@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from "./state/store";
 import { Home } from './Home';
+import { Broadcast } from "./Broadcast";
 
 function App() {
     return (
@@ -12,6 +13,7 @@ function App() {
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Home />} />
+                        <Route path="/broadcast" element={<Broadcast />} />
                     </Routes>
                 </BrowserRouter>
             </Provider>

@@ -9,6 +9,11 @@ export const bootstrapClient = createAsyncThunk(
     async (_, { dispatch }) => {
         const frozenConsumers: FrozenConsumer[] = load(CONSUMERS_STORAGE_KEY, []);
         frozenConsumers.forEach(frozen => dispatch(registerConsumer(frozen)));
+
+        const frozenProducer: FrozenProducer | undefined = load(PRODUCER_STORAGE_KEY, undefined);
+        if (frozenProducer != null) {
+            dispatch(registerProducer(frozenProducer));
+        }
     },
 )
 

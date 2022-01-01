@@ -1,3 +1,7 @@
+/**
+ * Server APIs.
+ * These are used to communicate with the server.
+ */
 export type ApiMessage = EncryptedData | Subscribe | SubscribeSuccess | SubscribeFailure;
 
 export interface EncryptedData {
@@ -22,4 +26,13 @@ export interface SubscribeFailure {
 	type: "subscribe-failure";
 	streamId: string;
 	reason: string;
+}
+
+/**
+ * Client APIs.
+ * These go inside the encrypted data messages, and are opaque to the server.
+ */
+export interface VideoFrame {
+	type: "frame",
+	imageDataUrl: string,
 }
