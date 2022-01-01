@@ -8,7 +8,12 @@ import { VideoFrame } from "./api";
 
 export const Broadcast: React.FC = () => {
 	const producer = useAppSelector(selectProducer);
-	const media = useMediaStream({ video: true });
+	const media = useMediaStream({
+		video: {
+			width: 320,
+			height: 240,
+		},
+	});
 	const video = React.useRef<HTMLVideoElement>(null);
 	const canvas = React.useRef<HTMLCanvasElement>(null);
 
@@ -33,7 +38,7 @@ export const Broadcast: React.FC = () => {
 
 			const msgData: VideoFrame = {
 				type: "frame",
-				imageDataUrl: canvasEl.toDataURL("image/jpeg", 80),
+				imageDataUrl: canvasEl.toDataURL("image/webp", 0.5),
 			};
 
 			const enc = new TextEncoder();
