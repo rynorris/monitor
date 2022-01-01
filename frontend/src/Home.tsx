@@ -2,7 +2,6 @@ import { Button, Divider, Flex, Heading, Modal, ModalContent, ModalOverlay, useD
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ScanQRCode } from "./components/ScanQRCode";
-import { ShareQRCode } from "./components/ShareQRCode";
 import { selectConsumers } from "./state/consumersSlice";
 import { useAppSelector } from "./state/store";
 

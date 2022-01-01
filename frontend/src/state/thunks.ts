@@ -10,9 +10,10 @@ export const bootstrapClient = createAsyncThunk(
         const frozenConsumers: FrozenConsumer[] = load(CONSUMERS_STORAGE_KEY, []);
         frozenConsumers.forEach(frozen => dispatch(registerConsumer(frozen)));
 
-        const frozenProducer: FrozenProducer | undefined = load(PRODUCER_STORAGE_KEY, undefined);
+        const frozenProducer: FrozenProducer | undefined = load<FrozenProducer | undefined>(PRODUCER_STORAGE_KEY, undefined);
         if (frozenProducer != null) {
             dispatch(registerProducer(frozenProducer));
+            dispatch(registerConsumer({ ...frozenProducer, signingPublicKey: frozenProducer.signingKeyPair.publicKey }))
         } else {
             const newProducer = await newStream("Test");
             dispatch(registerProducer(await freezeProducer(newProducer)));
