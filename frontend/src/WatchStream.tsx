@@ -1,4 +1,3 @@
-import { Center } from "@chakra-ui/react";
 import React from "react";
 import { useParams } from "react-router-dom";
 import { VideoFrame } from "./api";

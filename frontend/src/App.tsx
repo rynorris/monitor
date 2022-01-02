@@ -8,10 +8,11 @@ import { Layout } from './Layout';
 import { Watch } from './Watch';
 import { WatchStream } from './WatchStream';
 import { Home } from './Home';
+import theme from './theme';
 
 function App() {
     return (
-        <ChakraProvider>
+        <ChakraProvider theme={theme}>
             <Provider store={store}>
                 <BrowserRouter>
                     <Routes>

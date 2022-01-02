@@ -1,4 +1,3 @@
-import { Html5QrcodeScanner } from "html5-qrcode";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FrozenConsumer } from "../clients";

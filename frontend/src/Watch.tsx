@@ -11,7 +11,7 @@ export const Watch: React.FC = () => {
 
     const buttonStyleProps = {
         flex: "none",
-        colorScheme: "blue",
+        colorScheme: "green",
         width: "100%",
         height: "50px",
         maxW: 500,

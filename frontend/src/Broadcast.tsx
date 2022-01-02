@@ -1,7 +1,7 @@
 import React from "react";
 import { selectProducer } from "./state/producerSlice";
 import { useAppSelector } from "./state/store";
-import { Box, Button, Flex, Modal, ModalContent, ModalOverlay, Spacer, useDisclosure } from "@chakra-ui/react";
+import { Button, Flex, Modal, ModalContent, ModalOverlay, Spacer, useDisclosure } from "@chakra-ui/react";
 import { getClient } from "./clients";
 import { VideoFrame } from "./api";
 import { ShareQRCode } from "./components/ShareQRCode";
@@ -87,7 +87,7 @@ export const Broadcast: React.FC = () => {
 
 	const buttonStyleProps = {
 		flex: "none",
-		colorScheme: "blue",
+		colorScheme: "green",
 		width: "100%",
 		height: "50px",
 		maxW: 500,
