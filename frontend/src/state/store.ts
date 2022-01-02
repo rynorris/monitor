@@ -2,12 +2,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import consumersSlice from "./consumersSlice";
 import producerSlice from "./producerSlice";
+import statusSlice from "./statusSlice";
 import { bootstrapClient } from "./thunks";
 
 export const store = configureStore({
     reducer: {
         consumers: consumersSlice,
         producer: producerSlice,
+        status: statusSlice,
     },
 });
 

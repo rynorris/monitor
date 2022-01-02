@@ -1,7 +1,7 @@
 import React from "react";
 import { selectProducer } from "./state/producerSlice";
 import { useAppSelector } from "./state/store";
-import { Button, Flex, Modal, ModalContent, ModalOverlay, Spacer, useDisclosure } from "@chakra-ui/react";
+import { Button, Center, Flex, Modal, ModalContent, ModalOverlay, Spacer, useDisclosure } from "@chakra-ui/react";
 import { getClient } from "./clients";
 import { VideoFrame } from "./api";
 import { ShareQRCode } from "./components/ShareQRCode";
@@ -87,7 +87,15 @@ export const Broadcast: React.FC = () => {
 
 	return (
 		<Flex direction="column" height="100%">
-			<video ref={video} playsInline={true} />
+			<Center width="100%" height="100%" overflow="hidden" bg="black">
+				<video
+					ref={video}
+					playsInline={true}
+					autoPlay={true}
+					muted={true}
+					style={{ width: "100%", height: "100%", objectFit: "contain" }}
+				/>
+			</Center>
 			<Spacer />
 			<Button onClick={onOpen}>My QR Code</Button>
 			<Modal isOpen={isOpen} onClose={onClose}>

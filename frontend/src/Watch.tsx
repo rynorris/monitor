@@ -15,13 +15,13 @@ export const Watch: React.FC = () => {
         width: "100%",
         height: "50px",
         maxW: 500,
-        margin: 2,
+        marginTop: 2,
     } as const;
 
     const viewAgain = consumers.length > 0 ? (
         <>
             <Heading>Watch again</Heading>
-            <Flex direction="column" flexGrow={1} overflowY="scroll" width="100%" alignItems="center">
+            <Flex direction="column" flexGrow={1} overflow="auto" width="100%" alignItems="center">
                 {consumers.map(consumer => (
                     <Button
                         key={consumer.streamId}

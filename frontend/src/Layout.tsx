@@ -1,15 +1,17 @@
-import { Box, Flex } from "@chakra-ui/react";
+import { Box, Grid } from "@chakra-ui/react";
 import React from "react";
 import { Outlet } from "react-router-dom";
+import { AppHeader } from "./components/AppHeader";
 import { Navbar } from "./components/Navbar";
 
 export const Layout: React.FC = () => {
     return (
-        <Flex direction="column" height="100%">
+        <Grid height="100%" gridTemplateRows="max-content 1fr max-content">
+            <AppHeader />
             <Box flexGrow={1}>
                 <Outlet />
             </Box>
             <Navbar />
-        </Flex>
+        </Grid>
     );
 };

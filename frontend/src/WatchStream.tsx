@@ -1,4 +1,4 @@
-import { Flex } from "@chakra-ui/react";
+import { Box, Center, Flex } from "@chakra-ui/react";
 import React from "react";
 import { useParams } from "react-router-dom";
 import { VideoFrame } from "./api";
@@ -48,8 +48,14 @@ export const WatchStream: React.FC = () => {
 	}, [handleMessage, streamId]);
 
 	return (
-		<Flex direction="column" width="100%" height="100%">
-			<video src={sourceUrl} playsInline={true} autoPlay={true} muted={true} />
-		</Flex>
+		<Center width="100%" height="100%" overflow="hidden" bg="black">
+			<video
+				src={sourceUrl}
+				playsInline={true}
+				autoPlay={true}
+				muted={true}
+				style={{ width: "100%", height: "100%", objectFit: "contain" }}
+			/>
+		</Center>
 	)
 };

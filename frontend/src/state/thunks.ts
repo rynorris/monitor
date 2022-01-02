@@ -3,10 +3,15 @@ import { freezeProducer, FrozenConsumer, FrozenProducer, getClient, newStream, t
 import { addConsumer } from "./consumersSlice";
 import { CONSUMERS_STORAGE_KEY, load, PRODUCER_STORAGE_KEY, save } from "./persistence";
 import { setProducer } from "./producerSlice";
+import { connect, disconnect } from "./statusSlice";
 
 export const bootstrapClient = createAsyncThunk(
     "client/bootstrap",
     async (_, { dispatch }) => {
+        const client = getClient();
+        client.onConnect = () => dispatch(connect());
+        client.onDisconnect = () => dispatch(disconnect());
+
         const frozenConsumers: FrozenConsumer[] = load(CONSUMERS_STORAGE_KEY, []);
         frozenConsumers.forEach(frozen => dispatch(registerConsumer(frozen)));
 

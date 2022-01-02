@@ -19,6 +19,9 @@ export function getClient(): Client {
 }
 
 export class Client {
+	public onConnect?: () => void;
+	public onDisconnect?: () => void;
+
 	private ws?: PersistentWebSocket;
 	private streams: Record<string, StreamStatus> = {};
 	private consumers: Record<string, StreamConsumer> = {};
@@ -30,15 +33,18 @@ export class Client {
 		this.ws = new PersistentWebSocket(url);
 
 		this.ws.onopen = () => {
-			console.log(this);
 			this.streams = {};
 			this.synchronize();
 			this.syncInterval = setInterval(this.synchronize.bind(this), 1000);
+			this.onConnect?.();
 		};
 		this.ws.onmessage = this.handleMessage.bind(this);
 
 		const stopSyncing = () => this.syncInterval && clearInterval(this.syncInterval);
-		this.ws.onclose = stopSyncing;
+		this.ws.onclose = () => {
+			stopSyncing();
+			this.onDisconnect?.();
+		};
 	}
 
 	public close() {
