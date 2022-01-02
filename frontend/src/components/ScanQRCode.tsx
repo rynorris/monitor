@@ -4,38 +4,25 @@ import { useNavigate } from "react-router-dom";
 import { FrozenConsumer } from "../clients";
 import { useAppDispatch } from "../state/store";
 import { registerConsumer } from "../state/thunks";
+import QrReader from "react-qr-reader";
 
 export const ScanQRCode: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
-	React.useLayoutEffect(() => {
-		const scanner = new Html5QrcodeScanner(
-			"qrcode-reader",
-			{
-				fps: 10,
-				qrbox: 5,
-				videoConstraints: { facingMode: "environment" },
-			},
-			false,
-		);
+	const handleScan = React.useCallback((text: string | null) => {
+		if (text == null) {
+			return;
+		}
 
-		const onSuccess = async (text: string) => {
-			const frozen: FrozenConsumer = JSON.parse(text);
-			dispatch(registerConsumer(frozen));
-			navigate(`/watch/${frozen.streamId}`);
-		};
-
-		const onFailure = (err: unknown) => console.warn(`Error scanning QR Code: ${err}`);
-
-		scanner.render(onSuccess, onFailure);
-
-		return () => {
-			scanner.clear();
-		};
+		const frozen: FrozenConsumer = JSON.parse(text);
+		dispatch(registerConsumer(frozen));
+		navigate(`/watch/${frozen.streamId}`);
 	}, [dispatch, navigate]);
 
+	const handleError = (err: any) => console.log(`Error scanning QR code: ${err}`);
+
 	return (
-		<div id="qrcode-reader" />
+		<QrReader onScan={handleScan} onError={handleError} />
 	)
 };
