@@ -1,55 +1,53 @@
-import { Flex } from "@chakra-ui/react";
+import { Button, Flex, Heading, Modal, ModalContent, ModalOverlay, useDisclosure } from "@chakra-ui/react";
 import React from "react";
-import { useParams } from "react-router-dom";
-import { VideoFrame } from "./api";
-import { getClient } from "./clients";
+import { useNavigate } from "react-router-dom";
+import { ScanQRCode } from "./components/ScanQRCode";
+import { selectConsumers } from "./state/consumersSlice";
+import { useAppSelector } from "./state/store";
 
 export const Watch: React.FC = () => {
-	const { streamId } = useParams();
+    const navigate = useNavigate();
+    const consumers = useAppSelector(selectConsumers);
 
-	const source = React.useMemo(() => {
-		const ms = new MediaSource();
-		ms.onsourceopen = () => {
-			const videoBuffer = ms.addSourceBuffer('video/webm; codecs="vp9"');
-			videoBuffer.mode = "sequence";
-			videoBuffer.onerror = ev => console.log("ERROR", ev);
-		}
-		return ms;
-	}, []);
+    const buttonStyleProps = {
+        flex: "none",
+        colorScheme: "blue",
+        width: "100%",
+        height: "50px",
+        maxW: 500,
+        margin: 2,
+    } as const;
 
-	const sourceUrl = React.useMemo(() => {
-		return URL.createObjectURL(source);
-	}, [source]);
+    const viewAgain = consumers.length > 0 ? (
+        <>
+            <Heading>Watch again</Heading>
+            <Flex direction="column" flexGrow={1} overflowY="scroll" width="100%" alignItems="center">
+                {consumers.map(consumer => (
+                    <Button
+                        key={consumer.streamId}
+                        variant="outline"
+                        onClick={() => navigate(`/watch/${consumer.streamId}`)}
+                        {...buttonStyleProps}
+                    >
+                        {consumer.name}
+                    </Button>
+                ))}
+            </Flex>
+        </>
+    ) : null;
 
-	const handleMessage = React.useCallback((data: ArrayBuffer) => {
-		if (source.readyState !== "open") {
-			return;
-		}
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
-		(async () => {
-			const dec = new TextDecoder();
-			const msg: VideoFrame = JSON.parse(dec.decode(data));
-			const segment = await fetch(msg.imageDataUrl);
-			const buf = await segment.arrayBuffer();
-			console.log(source.sourceBuffers[0]);
-			source.sourceBuffers[0].appendBuffer(buf)
-		})();
-	}, [source]);
-
-	React.useEffect(() => {
-		if (streamId == null) {
-			return;
-		}
-
-		const client = getClient();
-		client.subscribe(streamId, handleMessage);
-
-		return () => client.unsubscribe(streamId, handleMessage);
-	}, [handleMessage, streamId]);
-
-	return (
-		<Flex direction="column" width="100%" height="100vh">
-			<video src={sourceUrl} playsInline={true} autoPlay={true} muted={true} />
-		</Flex>
-	)
+    return (
+        <Flex direction="column" height="100%" alignItems="center" padding={2}>
+            {viewAgain}
+            <Button onClick={onOpen} {...buttonStyleProps}>Scan QR Code</Button>
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                    <ScanQRCode />
+                </ModalContent>
+            </Modal>
+        </Flex>
+    );
 };

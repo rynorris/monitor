@@ -41,6 +41,13 @@ export const Broadcast: React.FC = () => {
 	const stream = useMediaStream(constraints);
 
 	React.useEffect(() => {
+		if (stream != null && video.current != null) {
+			video.current.srcObject = stream;
+			video.current.play();
+		}
+	}, [video, stream]);
+
+	React.useEffect(() => {
 		if (stream == null) {
 			return;
 		}
@@ -79,7 +86,7 @@ export const Broadcast: React.FC = () => {
 	}
 
 	return (
-		<Flex direction="column" height="100vh">
+		<Flex direction="column" height="100%">
 			<video ref={video} playsInline={true} />
 			<Spacer />
 			<Button onClick={onOpen}>My QR Code</Button>

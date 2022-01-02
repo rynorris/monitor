@@ -12,7 +12,11 @@ export const ScanQRCode: React.FC = () => {
 	React.useLayoutEffect(() => {
 		const scanner = new Html5QrcodeScanner(
 			"qrcode-reader",
-			{ fps: 10 },
+			{
+				fps: 10,
+				qrbox: 5,
+				videoConstraints: { facingMode: "environment" },
+			},
 			false,
 		);
 
