@@ -1,11 +1,12 @@
 import React from "react";
 import { selectProducer } from "./state/producerSlice";
 import { useAppSelector } from "./state/store";
-import { Button, Center, Flex, Modal, ModalContent, ModalOverlay, Spacer, useDisclosure } from "@chakra-ui/react";
+import { Box, Button, Flex, Modal, ModalContent, ModalOverlay, Spacer, useDisclosure } from "@chakra-ui/react";
 import { getClient } from "./clients";
 import { VideoFrame } from "./api";
 import { ShareQRCode } from "./components/ShareQRCode";
 import { useMediaStream } from "./hooks/useMediaStream";
+import { VideoPlayer } from "./components/VideoPlayer";
 
 export const Broadcast: React.FC = () => {
 	const producer = useAppSelector(selectProducer);
@@ -43,9 +44,8 @@ export const Broadcast: React.FC = () => {
 	React.useEffect(() => {
 		if (stream != null && video.current != null) {
 			video.current.srcObject = stream;
-			video.current.play();
 		}
-	}, [video, stream]);
+	}, [stream, video]);
 
 	React.useEffect(() => {
 		if (stream == null) {
@@ -85,19 +85,21 @@ export const Broadcast: React.FC = () => {
 		return null;
 	}
 
+	const buttonStyleProps = {
+		flex: "none",
+		colorScheme: "blue",
+		width: "100%",
+		height: "50px",
+		maxW: 500,
+	} as const;
+
 	return (
-		<Flex direction="column" height="100%">
-			<Center width="100%" height="100%" overflow="hidden" bg="black">
-				<video
-					ref={video}
-					playsInline={true}
-					autoPlay={true}
-					muted={true}
-					style={{ width: "100%", height: "100%", objectFit: "contain" }}
-				/>
-			</Center>
+		<Flex direction="column" height="100%" overflow="hidden">
+			<VideoPlayer videoRef={video} />
 			<Spacer />
-			<Button onClick={onOpen}>My QR Code</Button>
+			<Flex direction="column" alignItems="center" padding={2}>
+				<Button onClick={onOpen} {...buttonStyleProps}>My QR Code</Button>
+			</Flex>
 			<Modal isOpen={isOpen} onClose={onClose}>
 				<ModalOverlay />
 				<ModalContent>

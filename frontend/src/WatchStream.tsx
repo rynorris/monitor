@@ -1,13 +1,16 @@
-import { Box, Center, Flex } from "@chakra-ui/react";
+import { Center } from "@chakra-ui/react";
 import React from "react";
 import { useParams } from "react-router-dom";
 import { VideoFrame } from "./api";
 import { getClient } from "./clients";
+import { VideoPlayer } from "./components/VideoPlayer";
 
 export const WatchStream: React.FC = () => {
 	const { streamId } = useParams();
+	const [sourceUrl, setSourceUrl] = React.useState<string>();
+	const source = React.useRef<MediaSource>();
 
-	const source = React.useMemo(() => {
+	React.useEffect(() => {
 		const ms = new MediaSource();
 		ms.onsourceopen = () => {
 			const videoBuffer = ms.addSourceBuffer('video/webm; codecs="vp9"');
@@ -22,21 +25,25 @@ export const WatchStream: React.FC = () => {
 
 				const start = buffered.start(0);
 				const end = buffered.end(0);
-				if (end - start > 2) {
-					console.log("Trimming buffer", { start, end });
+				if (end - start > 2 && !videoBuffer.updating) {
 					videoBuffer.remove(start, end - 2);
 				}
 			};
 		}
-		return ms;
-	}, []);
+		source.current = ms;
+		setSourceUrl(URL.createObjectURL(ms));
 
-	const sourceUrl = React.useMemo(() => {
-		return URL.createObjectURL(source);
+		return () => {
+			if (ms.readyState === "open") {
+				ms.endOfStream();
+			}
+		};
 	}, [source]);
 
 	const handleMessage = React.useCallback((data: ArrayBuffer) => {
-		if (source.readyState !== "open") {
+		const ms = source.current;
+
+		if (ms == null || ms.readyState !== "open") {
 			return;
 		}
 
@@ -45,7 +52,7 @@ export const WatchStream: React.FC = () => {
 			const msg: VideoFrame = JSON.parse(dec.decode(data));
 			const segment = await fetch(msg.imageDataUrl);
 			const buf = await segment.arrayBuffer();
-			source.sourceBuffers[0].appendBuffer(buf)
+			ms.sourceBuffers[0].appendBuffer(buf)
 		})();
 	}, [source]);
 
@@ -60,15 +67,5 @@ export const WatchStream: React.FC = () => {
 		return () => client.unsubscribe(streamId, handleMessage);
 	}, [handleMessage, streamId]);
 
-	return (
-		<Center width="100%" height="100%" overflow="hidden" bg="black">
-			<video
-				src={sourceUrl}
-				playsInline={true}
-				autoPlay={true}
-				muted={true}
-				style={{ width: "100%", height: "100%", objectFit: "contain" }}
-			/>
-		</Center>
-	)
+	return <VideoPlayer src={sourceUrl} />;
 };

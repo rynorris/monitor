@@ -8,7 +8,7 @@ export const Layout: React.FC = () => {
     return (
         <Grid height="100%" gridTemplateRows="max-content 1fr max-content">
             <AppHeader />
-            <Box flexGrow={1}>
+            <Box flexGrow={1} overflow="hidden">
                 <Outlet />
             </Box>
             <Navbar />
