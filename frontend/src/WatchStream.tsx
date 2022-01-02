@@ -13,6 +13,20 @@ export const WatchStream: React.FC = () => {
 			const videoBuffer = ms.addSourceBuffer('video/webm; codecs="vp9"');
 			videoBuffer.mode = "sequence";
 			videoBuffer.onerror = ev => console.log("ERROR", ev);
+			videoBuffer.onupdateend = () => {
+				// Don't keep too much video buffered.
+				const buffered = videoBuffer.buffered;
+				if (buffered.length === 0) {
+					return;
+				}
+
+				const start = buffered.start(0);
+				const end = buffered.end(0);
+				if (end - start > 2) {
+					console.log("Trimming buffer", { start, end });
+					videoBuffer.remove(start, end - 2);
+				}
+			};
 		}
 		return ms;
 	}, []);
@@ -31,7 +45,6 @@ export const WatchStream: React.FC = () => {
 			const msg: VideoFrame = JSON.parse(dec.decode(data));
 			const segment = await fetch(msg.imageDataUrl);
 			const buf = await segment.arrayBuffer();
-			console.log(source.sourceBuffers[0]);
 			source.sourceBuffers[0].appendBuffer(buf)
 		})();
 	}, [source]);
