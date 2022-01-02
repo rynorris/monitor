@@ -15,6 +15,7 @@ import { VideoFrame } from "./api";
 import { ShareQRCode } from "./components/ShareQRCode";
 import { useMediaStream } from "./hooks/useMediaStream";
 import { VideoPlayer } from "./components/VideoPlayer";
+import { CreateBroadcastForm } from "./components/CreateBroadcastForm";
 
 export const Broadcast: React.FC = () => {
     const producer = useAppSelector(selectProducer);
@@ -95,7 +96,7 @@ export const Broadcast: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     if (producer == null) {
-        return null;
+        return <CreateBroadcastForm />;
     }
 
     const buttonStyleProps = {

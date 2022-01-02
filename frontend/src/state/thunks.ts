@@ -43,9 +43,15 @@ export const bootstrapClient = createAsyncThunk(
                 })
             );
         } else {
-            const newProducer = await newStream("Test");
-            dispatch(registerProducer(await freezeProducer(newProducer)));
         }
+    }
+);
+
+export const createProducer = createAsyncThunk(
+    "producer/create",
+    async (name: string, { dispatch }) => {
+        const newProducer = await newStream(name);
+        dispatch(registerProducer(await freezeProducer(newProducer)));
     }
 );
 
