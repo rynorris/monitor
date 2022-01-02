@@ -15,11 +15,18 @@ export const consumersSlice = createSlice({
     initialState,
     reducers: {
         addConsumer: (state, action: PayloadAction<FrozenConsumer>) => {
-            state.consumers = [...state.consumers.filter(c => c.streamId !== action.payload.streamId), action.payload];
+            state.consumers = [
+                ...state.consumers.filter(
+                    (c) => c.streamId !== action.payload.streamId
+                ),
+                action.payload,
+            ];
         },
 
         removeConsumer: (state, action: PayloadAction<string>) => {
-            state.consumers = state.consumers.filter(c => c.streamId !== action.payload);
+            state.consumers = state.consumers.filter(
+                (c) => c.streamId !== action.payload
+            );
         },
     },
 });

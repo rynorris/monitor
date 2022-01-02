@@ -20,5 +20,5 @@ export const AppHeader: React.FC = () => {
             <Spacer />
             <Text>{connected ? "Connected" : "Disconnected"}</Text>
         </Flex>
-    )
+    );
 };

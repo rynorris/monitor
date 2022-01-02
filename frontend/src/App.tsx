@@ -1,14 +1,14 @@
-import React from 'react';
+import React from "react";
 import { ChakraProvider } from "@chakra-ui/react";
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Provider } from 'react-redux';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Provider } from "react-redux";
 import { store } from "./state/store";
 import { Broadcast } from "./Broadcast";
-import { Layout } from './Layout';
-import { Watch } from './Watch';
-import { WatchStream } from './WatchStream';
-import { Home } from './Home';
-import theme from './theme';
+import { Layout } from "./Layout";
+import { Watch } from "./Watch";
+import { WatchStream } from "./WatchStream";
+import { Home } from "./Home";
+import theme from "./theme";
 
 function App() {
     return (
@@ -20,7 +20,10 @@ function App() {
                             <Route index element={<Home />} />
                             <Route path="/broadcast" element={<Broadcast />} />
                             <Route path="/watch" element={<Watch />} />
-                            <Route path="/watch/:streamId" element={<WatchStream />} />
+                            <Route
+                                path="/watch/:streamId"
+                                element={<WatchStream />}
+                            />
                         </Route>
                     </Routes>
                 </BrowserRouter>
