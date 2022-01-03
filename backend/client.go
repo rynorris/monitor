@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	writeWait      = 10 * time.Second
+	writeWait      = 1 * time.Second
 	pongWait       = 60 * time.Second
 	pingPeriod     = pongWait / 2
 	maxMessageSize = 10 * 1024 * 1024
@@ -29,6 +30,10 @@ type Client struct {
 	subscriptions map[string]bool
 }
 
+func (c *Client) String() string {
+	return fmt.Sprintf("Client[%v]", c.conn.RemoteAddr())
+}
+
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -44,11 +49,11 @@ func NewClient(hub *Hub, conn *websocket.Conn) *Client {
 	client := &Client{
 		hub:           hub,
 		conn:          conn,
-		send:          make(chan *ApiMessage, 10),
+		send:          make(chan *ApiMessage, 1),
 		subscriptions: make(map[string]bool),
 	}
 
-	log.Print("New client connected")
+	log.Printf("New client connected: %v", client)
 
 	go client.readPump()
 	go client.writePump()
@@ -74,7 +79,7 @@ func (c *Client) readPump() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure, websocket.CloseGoingAway) {
 				log.Printf("unexpected error: %v", err)
 			}
-			log.Printf("Client disconnected")
+			log.Printf("Client disconnected: %v", c)
 			c.hub.unregister <- c
 			break
 		}
@@ -127,6 +132,7 @@ func (c *Client) writePump() {
 			}
 
 			if err := c.conn.WriteMessage(websocket.TextMessage, data); err != nil {
+				log.Printf("Timed out sending message to client: %v", c)
 				return
 			}
 		case <-ticker.C:

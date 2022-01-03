@@ -1,5 +1,9 @@
 package main
 
+import (
+	"log"
+)
+
 type ClientAndStream struct {
 	client   *Client
 	streamId string
@@ -17,12 +21,12 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		register:    make(chan *Client),
-		unregister:  make(chan *Client),
-		subscribe:   make(chan ClientAndStream),
-		unsubscribe: make(chan ClientAndStream),
+		register:    make(chan *Client, 10),
+		unregister:  make(chan *Client, 10),
+		subscribe:   make(chan ClientAndStream, 10),
+		unsubscribe: make(chan ClientAndStream, 10),
 		clients:     make(map[*Client]map[string]bool),
-		broadcast:   make(chan *ApiMessage),
+		broadcast:   make(chan *ApiMessage, 100),
 	}
 }
 
@@ -53,7 +57,12 @@ func (h *Hub) run() {
 		case msg := <-h.broadcast:
 			for client, subscriptions := range h.clients {
 				if _, ok := subscriptions[msg.StreamId]; ok {
-					client.send <- msg
+					select {
+						case client.send <- msg:
+							// Sent
+						default:
+							log.Printf("Client send channel is full: %v", client)
+					}
 				}
 			}
 		}
