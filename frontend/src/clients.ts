@@ -20,7 +20,8 @@ type StreamStatus = "disconnected" | "pending" | "connected";
 
 let globalClient: Client | null = null;
 
-const WS_URL = process.env.NODE_ENV === "production" ? "wss://api.monitor.norris.dev/ws" : "wss://localhost:3000/api/ws";
+const HOST = window.location.host;
+const WS_URL = process.env.NODE_ENV === "production" ? "wss://api.monitor.norris.dev/ws" : `wss://${HOST}/api/ws`;
 
 export function getClient(): Client {
     if (globalClient == null) {
