@@ -6,7 +6,8 @@ export type ApiMessage =
     | EncryptedData
     | Subscribe
     | SubscribeSuccess
-    | SubscribeFailure;
+    | SubscribeFailure
+    | Unsubscribe;
 
 export interface EncryptedData {
     type: "encrypted-data";
@@ -18,6 +19,11 @@ export interface EncryptedData {
 
 export interface Subscribe {
     type: "subscribe";
+    streamId: string;
+}
+
+export interface Unsubscribe {
+    type: "unsubscribe";
     streamId: string;
 }
 

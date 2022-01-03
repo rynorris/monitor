@@ -159,8 +159,7 @@ export class Client {
             const handlers = this.handlers[streamId] ?? [];
             if (handlers.length === 0) {
                 console.log(`Disconnecting from stream ${streamId}`);
-                // TODO: unsubscribe.
-
+                this.sendMessage({ type: "unsubscribe", streamId });
                 delete this.streams[streamId];
             }
         });
@@ -222,11 +221,13 @@ class PersistentWebSocket {
     }
 
     private handleOpen() {
+        console.log(`Websocket connected: ${this.url}`);
         this.connected = true;
         this.onopen?.();
     }
 
     private handleClose() {
+        console.log(`Websocket disconnected: ${this.url}`);
         this.connected = false;
         this.ws = null;
     }
