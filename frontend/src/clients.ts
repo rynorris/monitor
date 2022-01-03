@@ -20,10 +20,12 @@ type StreamStatus = "disconnected" | "pending" | "connected";
 
 let globalClient: Client | null = null;
 
+const WS_URL = "wss://api.monitor.norris.dev/ws";
+
 export function getClient(): Client {
     if (globalClient == null) {
         globalClient = new Client();
-        globalClient.connect("wss://192.168.49.77:8080/ws");
+        globalClient.connect(WS_URL);
     }
 
     return globalClient;
