@@ -6,6 +6,7 @@
         "@chakra-ui/react": "^1.7.3",
         "@emotion/react": "^11",
         "@emotion/styled": "^11",
+        "@msgpack/msgpack": "^2.7.1",
         "@reduxjs/toolkit": "^1.7.1",
         "@testing-library/jest-dom": "^5.14.1",
         "@testing-library/react": "^12.0.0",

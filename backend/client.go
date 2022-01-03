@@ -1,13 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 const (
@@ -85,7 +85,7 @@ func (c *Client) readPump() {
 		}
 
 		msg := &ApiMessage{}
-		json.Unmarshal(data, msg)
+		msgpack.Unmarshal(data, msg)
 
 		switch msg.Type {
 		case "subscribe":
@@ -126,12 +126,12 @@ func (c *Client) writePump() {
 				return
 			}
 
-			data, err := json.Marshal(msg)
+			data, err := msgpack.Marshal(msg)
 			if err != nil {
 				return
 			}
 
-			if err := c.conn.WriteMessage(websocket.TextMessage, data); err != nil {
+			if err := c.conn.WriteMessage(websocket.BinaryMessage, data); err != nil {
 				log.Printf("Timed out sending message to client: %v", c)
 				return
 			}

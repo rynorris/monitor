@@ -11,11 +11,12 @@ import {
     useDisclosure,
 } from "@chakra-ui/react";
 import { getClient } from "./clients";
-import { VideoFrame } from "./api";
+import { VideoSegment } from "./api";
 import { ShareQRCode } from "./components/ShareQRCode";
 import { useMediaStream } from "./hooks/useMediaStream";
 import { VideoPlayer } from "./components/VideoPlayer";
 import { CreateBroadcastForm } from "./components/CreateBroadcastForm";
+import * as Msgpack from "@msgpack/msgpack";
 
 export const Broadcast: React.FC = () => {
     const producer = useAppSelector(selectProducer);
@@ -23,21 +24,24 @@ export const Broadcast: React.FC = () => {
 
     const handleSegment = React.useCallback(
         (ev: BlobEvent) => {
-            if (producer == null) {
-                return;
-            }
+            (async () => {
+                if (producer == null) {
+                    return;
+                }
+
+                const msg: VideoSegment = {
+                    type: "segment",
+                    data: new Uint8Array(await ev.data.arrayBuffer()),
+                };
+
+                getClient().broadcast(
+                    producer.streamId,
+                    Msgpack.encode(msg),
+                );
+            })();
 
             const fr = new FileReader();
             fr.onload = () => {
-                const msg: VideoFrame = {
-                    type: "frame",
-                    imageDataUrl: fr.result as string,
-                };
-                const enc = new TextEncoder();
-                getClient().broadcast(
-                    producer.streamId,
-                    enc.encode(JSON.stringify(msg))
-                );
             };
             fr.readAsDataURL(ev.data);
         },
@@ -82,7 +86,7 @@ export const Broadcast: React.FC = () => {
             } catch (e: unknown) {
                 console.error("Failed to load media stream", e);
             }
-        }, 500);
+        }, 1000);
 
         return () => {
             clearInterval(handle);

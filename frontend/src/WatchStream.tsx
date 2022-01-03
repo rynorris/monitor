@@ -1,8 +1,9 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { VideoFrame } from "./api";
+import { VideoSegment } from "./api";
 import { getClient } from "./clients";
 import { VideoPlayer } from "./components/VideoPlayer";
+import * as Msgpack from "@msgpack/msgpack";
 
 export const WatchStream: React.FC = () => {
     const { streamId } = useParams();
@@ -48,11 +49,8 @@ export const WatchStream: React.FC = () => {
             }
 
             (async () => {
-                const dec = new TextDecoder();
-                const msg: VideoFrame = JSON.parse(dec.decode(data));
-                const segment = await fetch(msg.imageDataUrl);
-                const buf = await segment.arrayBuffer();
-                ms.sourceBuffers[0].appendBuffer(buf);
+                const msg = Msgpack.decode<VideoSegment>(data) as VideoSegment;
+                ms.sourceBuffers[0].appendBuffer(msg.data);
             })();
         },
         [source]

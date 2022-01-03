@@ -12,9 +12,9 @@ export type ApiMessage =
 export interface EncryptedData {
     type: "encrypted-data";
     streamId: string;
-    b64Iv: string;
-    b64Data: string;
-    b64Signature: string;
+    iv: ArrayBufferView;
+    data: ArrayBufferView;
+    signature: ArrayBufferView;
 }
 
 export interface Subscribe {
@@ -42,7 +42,7 @@ export interface SubscribeFailure {
  * Client APIs.
  * These go inside the encrypted data messages, and are opaque to the server.
  */
-export interface VideoFrame {
-    type: "frame";
-    imageDataUrl: string;
+export interface VideoSegment {
+    type: "segment";
+    data: ArrayBufferView;
 }

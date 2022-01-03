@@ -1,13 +1,13 @@
 package main
 
 type ApiMessage struct {
-	Type string `json:"type"`
+	Type string `msgpack:"type"`
 
-	StreamId string `json:"streamId"`
+	StreamId string `msgpack:"streamId"`
 
-	B64Iv        string `json:"b64Iv"`
-	B64Data      string `json:"b64Data"`
-	B64Signature string `json:"b64Signature"`
+	Iv        []byte `msgpack:"iv"`
+	Data      []byte `msgpack:"data"`
+	Signature []byte `msgpack:"signature"`
 
-	Reason string `json:"reason"`
+	Reason string `msgpack:"reason"`
 }

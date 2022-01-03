@@ -11,8 +11,8 @@ import {
     sign,
     verify,
 } from "./crypto";
-import { Base64 } from "js-base64";
 import * as Uuid from "uuid";
+import * as Msgpack from "@msgpack/msgpack";
 
 type Handler = (data: ArrayBuffer) => void;
 
@@ -114,7 +114,7 @@ export class Client {
     }
 
     private async handleMessage(ev: MessageEvent<any>) {
-        const msg = JSON.parse(ev.data);
+        const msg = Msgpack.decode(ev.data) as ApiMessage;
         switch (msg.type) {
             case "subscribe":
                 throw new Error("Received subscribe message from server");
@@ -177,7 +177,7 @@ export class Client {
     }
 
     private sendMessage(msg: ApiMessage) {
-        const msgData = JSON.stringify(msg);
+        const msgData = Msgpack.encode(msg);
         this.ws?.send(msgData);
     }
 }
@@ -213,6 +213,7 @@ class PersistentWebSocket {
     private check() {
         if (this.ws == null) {
             const ws = new WebSocket(this.url);
+            ws.binaryType = "arraybuffer";
             ws.onopen = this.handleOpen.bind(this);
             ws.onclose = this.handleClose.bind(this);
             ws.onmessage = this.handleMessage.bind(this);
@@ -274,9 +275,9 @@ export async function pack(
     return {
         type: "encrypted-data",
         streamId,
-        b64Iv: Base64.fromUint8Array(new Uint8Array(iv)),
-        b64Data: Base64.fromUint8Array(new Uint8Array(encryptedData)),
-        b64Signature: Base64.fromUint8Array(new Uint8Array(signature)),
+        iv,
+        data: new Uint8Array(encryptedData),
+        signature: new Uint8Array(signature),
     };
 }
 
@@ -285,12 +286,12 @@ export async function unpack(
     encryptedMessage: EncryptedData
 ): Promise<ArrayBuffer> {
     const { encryptionKey, signingPublicKey } = consumer;
-    const { b64Iv, b64Data, b64Signature } = encryptedMessage;
+    const { iv, data, signature } = encryptedMessage;
 
     const isValid = verify(
         signingPublicKey,
-        Base64.toUint8Array(b64Signature),
-        Base64.toUint8Array(b64Data)
+        signature,
+        data,
     );
     if (!isValid) {
         throw new Error("Message signature is not valid");
@@ -298,8 +299,8 @@ export async function unpack(
 
     return decrypt(
         encryptionKey,
-        Base64.toUint8Array(b64Iv),
-        Base64.toUint8Array(b64Data)
+        iv,
+        data,
     );
 }
 

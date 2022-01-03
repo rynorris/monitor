@@ -36,12 +36,6 @@ export const bootstrapClient = createAsyncThunk(
         >(PRODUCER_STORAGE_KEY, undefined);
         if (frozenProducer != null) {
             dispatch(registerProducer(frozenProducer));
-            dispatch(
-                registerConsumer({
-                    ...frozenProducer,
-                    signingPublicKey: frozenProducer.signingKeyPair.publicKey,
-                })
-            );
         } else {
         }
     }
