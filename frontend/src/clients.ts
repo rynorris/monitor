@@ -20,7 +20,7 @@ type StreamStatus = "disconnected" | "pending" | "connected";
 
 let globalClient: Client | null = null;
 
-const WS_URL = "wss://api.monitor.norris.dev/ws";
+const WS_URL = process.env.NODE_ENV === "production" ? "wss://api.monitor.norris.dev/ws" : "wss://localhost:3000/api/ws";
 
 export function getClient(): Client {
     if (globalClient == null) {
@@ -43,6 +43,7 @@ export class Client {
     private syncInterval: ReturnType<typeof setInterval> | null = null;
 
     public connect(url: string) {
+        console.log(`Connecting websocket client to: ${url}`);
         this.ws = new PersistentWebSocket(url);
 
         this.ws.onopen = () => {
