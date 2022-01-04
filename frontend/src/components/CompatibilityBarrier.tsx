@@ -11,7 +11,7 @@ interface CompatibilityCheck {
 const CHECKS: CompatibilityCheck[] = [
     {
         name: "Media Source Extensions",
-        isSupported: () => typeof MediaSource !== undefined,
+        isSupported: () => "MediaSource" in window,
     },
     {
         name: "Webm recording",
@@ -19,7 +19,7 @@ const CHECKS: CompatibilityCheck[] = [
     },
     {
         name: "Webm playback",
-        isSupported: () => MediaSource.isTypeSupported(VIDEO_CODEC),
+        isSupported: () => window.MediaSource?.isTypeSupported(VIDEO_CODEC),
     },
 ];
 
