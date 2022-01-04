@@ -11,6 +11,7 @@ jobs:
           working-directory: frontend
       - run: cd frontend && yarn build
       - uses: jakejarvis/s3-sync-action@master
+        if: github.ref == 'refs/heads/main'
         with:
           args: --follow-symlinks --delete
         env:
