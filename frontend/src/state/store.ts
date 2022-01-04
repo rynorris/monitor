@@ -3,6 +3,7 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import consumersSlice from "./consumersSlice";
 import producerSlice from "./producerSlice";
 import statusSlice from "./statusSlice";
+import layoutSlice from "./layoutSlice";
 import { bootstrapClient } from "./thunks";
 
 export const store = configureStore({
@@ -10,6 +11,7 @@ export const store = configureStore({
         consumers: consumersSlice,
         producer: producerSlice,
         status: statusSlice,
+        layout: layoutSlice,
     },
 });
 

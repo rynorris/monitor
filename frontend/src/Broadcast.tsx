@@ -1,13 +1,12 @@
 import React from "react";
 import { selectProducer } from "./state/producerSlice";
-import { useAppSelector } from "./state/store";
+import { useAppDispatch, useAppSelector } from "./state/store";
 import {
     Button,
     Flex,
     Modal,
     ModalContent,
     ModalOverlay,
-    Spacer,
     useDisclosure,
     useInterval,
 } from "@chakra-ui/react";
@@ -20,10 +19,26 @@ import { CreateBroadcastForm } from "./components/CreateBroadcastForm";
 import * as Msgpack from "@msgpack/msgpack";
 import { useMediaRecorder } from "./hooks/useMediaRecorder";
 import { MEDIA_RECORDER_OPTIONS } from "./media";
+import { hideToolbars, toggleToolbars } from "./state/layoutSlice";
+import { broadcasting, notBroadcasting } from "./state/statusSlice";
 
 export const Broadcast: React.FC = () => {
+    const dispatch = useAppDispatch();
     const producer = useAppSelector(selectProducer);
     const video = React.useRef<HTMLVideoElement>(null);
+
+    React.useEffect(() => {
+        if (producer != null) {
+            dispatch(broadcasting());
+            dispatch(hideToolbars());
+        } else {
+            dispatch(notBroadcasting());
+        }
+
+        return () => {
+            dispatch(notBroadcasting());
+        };
+    }, [dispatch, producer]);
 
     const [date, setDate] = React.useState<Date>(new Date());
     useInterval(() => {
@@ -90,12 +105,16 @@ export const Broadcast: React.FC = () => {
         maxW: 500,
     } as const;
 
-    const overlayText = `${producer?.name ?? ""} - ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date)}`;
+    const topText = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
 
     return (
         <Flex direction="column" height="100%" overflow="hidden">
-            <VideoPlayer videoRef={video} overlayText={overlayText} />
-            <Spacer />
+            <VideoPlayer
+                videoRef={video}
+                topText={topText}
+                bottomText={producer?.name}
+                onClick={() => dispatch(toggleToolbars())}
+            />
             <Flex direction="column" alignItems="center" padding={2}>
                 <Button onClick={onOpen} {...buttonStyleProps}>
                     My QR Code

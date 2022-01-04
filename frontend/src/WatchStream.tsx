@@ -5,12 +5,14 @@ import { getClient } from "./clients";
 import { VideoPlayer } from "./components/VideoPlayer";
 import * as Msgpack from "@msgpack/msgpack";
 import { useMediaSource } from "./hooks/useMediaSource";
-import { useAppSelector } from "./state/store";
+import { useAppDispatch, useAppSelector } from "./state/store";
 import { selectConsumer } from "./state/consumersSlice";
+import { hideToolbars, showToolbars, toggleToolbars } from "./state/layoutSlice";
 
 export const WatchStream: React.FC = () => {
     const { streamId } = useParams();
 
+    const dispatch = useAppDispatch();
     const consumer = useAppSelector(selectConsumer(streamId));
 
     const [date, setDate] = React.useState<Date>();
@@ -47,7 +49,21 @@ export const WatchStream: React.FC = () => {
         return () => client.unsubscribe(streamId, handleMessage);
     }, [streamId, source, setDate]);
 
-    const overlayText = `${consumer?.name ?? ""} - ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date)}`;
+    React.useEffect(() => {
+        dispatch(hideToolbars());
+        return () => {
+            dispatch(showToolbars());
+        };
+    }, [dispatch]);
 
-    return <VideoPlayer src={sourceUrl} overlayText={overlayText} />;
+    const topText = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
+
+    return (
+        <VideoPlayer
+            src={sourceUrl}
+            topText={topText}
+            bottomText={consumer?.name}
+            onClick={() => dispatch(toggleToolbars())}
+        />
+    );
 };

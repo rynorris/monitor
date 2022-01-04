@@ -1,15 +1,17 @@
-import { Center, Text } from "@chakra-ui/react";
+import { Box, Center, Text } from "@chakra-ui/react";
 import React from "react";
 
 interface Props {
-    overlayText?: string;
+    topText?: string;
+    bottomText?: string;
     src?: string;
+    onClick?: () => void;
     videoRef?: React.MutableRefObject<HTMLVideoElement | null>;
     videoProps?: React.DetailedHTMLProps<React.VideoHTMLAttributes<HTMLVideoElement>, HTMLVideoElement>;
 }
 
-export const VideoPlayer: React.FC<Props> = ({ src, overlayText, videoRef, videoProps }) => (
-    <>
+export const VideoPlayer: React.FC<Props> = ({ src, topText, bottomText, onClick, videoRef, videoProps }) => (
+    <Box width="100%" height="100%" position="relative" overflow="hidden" onClick={onClick}>
         <Center width="100%" height="100%" overflow="hidden" bg="black">
             <video
                 src={src}
@@ -21,6 +23,7 @@ export const VideoPlayer: React.FC<Props> = ({ src, overlayText, videoRef, video
                 {...videoProps}
             />
         </Center>
-        {overlayText && <Text position="absolute" top={0} bg="blackAlpha.700" fontFamily="mono" paddingLeft={2} paddingRight={2}>{overlayText}</Text>}
-    </>
+        {topText && <Text position="absolute" top={0} bg="blackAlpha.700" fontFamily="mono" p={2}>{topText}</Text>}
+        {bottomText && <Text position="absolute" bottom={0} bg="blackAlpha.700" fontFamily="mono" p={2}>{bottomText}</Text>}
+    </Box>
 );
