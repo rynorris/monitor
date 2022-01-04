@@ -1,11 +1,8 @@
-import { Flex, Heading, Spacer, Text } from "@chakra-ui/react";
+import { Flex, Heading, Spacer } from "@chakra-ui/react";
 import React from "react";
-import { selectConnected } from "../state/statusSlice";
-import { useAppSelector } from "../state/store";
+import { StatusIndicator } from "./StatusIndicator";
 
 export const AppHeader: React.FC = () => {
-    const connected = useAppSelector(selectConnected);
-
     return (
         <Flex
             width="100%"
@@ -18,7 +15,7 @@ export const AppHeader: React.FC = () => {
         >
             <Heading>Baby Monitor</Heading>
             <Spacer />
-            <Text>{connected ? "Connected" : "Disconnected"}</Text>
+            <StatusIndicator />
         </Flex>
     );
 };
