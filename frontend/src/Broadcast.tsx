@@ -9,6 +9,7 @@ import {
     ModalOverlay,
     Spacer,
     useDisclosure,
+    useInterval,
 } from "@chakra-ui/react";
 import { getClient } from "./clients";
 import { VideoSegment } from "./api";
@@ -23,6 +24,11 @@ import { MEDIA_RECORDER_OPTIONS } from "./media";
 export const Broadcast: React.FC = () => {
     const producer = useAppSelector(selectProducer);
     const video = React.useRef<HTMLVideoElement>(null);
+
+    const [date, setDate] = React.useState<Date>(new Date());
+    useInterval(() => {
+        setDate(new Date());
+    }, 1000);
 
     const constraints: MediaStreamConstraints = {
         video: {
@@ -42,6 +48,7 @@ export const Broadcast: React.FC = () => {
 
                 const msg: VideoSegment = {
                     type: "segment",
+                    timestamp: new Date(),
                     data: new Uint8Array(await ev.data.arrayBuffer()),
                 };
 
@@ -83,9 +90,11 @@ export const Broadcast: React.FC = () => {
         maxW: 500,
     } as const;
 
+    const overlayText = `${producer?.name ?? ""} - ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date)}`;
+
     return (
         <Flex direction="column" height="100%" overflow="hidden">
-            <VideoPlayer videoRef={video} />
+            <VideoPlayer videoRef={video} overlayText={overlayText} />
             <Spacer />
             <Flex direction="column" alignItems="center" padding={2}>
                 <Button onClick={onOpen} {...buttonStyleProps}>

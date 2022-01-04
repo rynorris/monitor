@@ -30,7 +30,7 @@ export const CompatibilityBarrier: React.FC = ({ children }) => {
         return <>{children}</>;
     } else {
         const alerts = CHECKS.map(check => (
-            <Alert status={check.isSupported() ? "success" : "error"}>
+            <Alert key={check.name} status={check.isSupported() ? "success" : "error"}>
                 <AlertIcon />
                 {check.name}
             </Alert>

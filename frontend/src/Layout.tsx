@@ -9,7 +9,7 @@ export const Layout: React.FC = () => {
     return (
         <Grid height="100%" gridTemplateRows="max-content 1fr max-content">
             <AppHeader />
-            <Box flexGrow={1} overflow="hidden">
+            <Box flexGrow={1} overflow="hidden" position="relative">
                 <CompatibilityBarrier>
                     <Outlet />
                 </CompatibilityBarrier>

@@ -44,5 +44,6 @@ export interface SubscribeFailure {
  */
 export interface VideoSegment {
     type: "segment";
+    timestamp: Date;
     data: ArrayBufferView;
 }

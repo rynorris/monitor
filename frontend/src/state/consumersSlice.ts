@@ -34,5 +34,6 @@ export const consumersSlice = createSlice({
 export const { addConsumer, removeConsumer } = consumersSlice.actions;
 
 export const selectConsumers = (state: RootState) => state.consumers.consumers;
+export const selectConsumer = (streamId: string | undefined) => (state: RootState) => state.consumers.consumers.find(c => c.streamId === streamId);
 
 export default consumersSlice.reducer;
