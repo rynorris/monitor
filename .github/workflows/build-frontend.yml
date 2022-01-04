@@ -5,12 +5,16 @@ jobs:
     runs-on: ubuntu-latest
     name: Build, test and deploy frontend
     steps:
-      - uses: actions/checkout@v2
-      - uses: bahmutov/npm-install@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: bahmutov/npm-install@v1
         with:
           working-directory: frontend
-      - run: cd frontend && yarn build
-      - uses: jakejarvis/s3-sync-action@master
+      - name: Build
+        run: cd frontend && yarn build
+      - name: Sync to S3
+        uses: jakejarvis/s3-sync-action@master
         if: github.ref == 'refs/heads/main'
         with:
           args: --follow-symlinks --delete
@@ -20,3 +24,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'eu-west-2'
           SOURCE_DIR: 'frontend/build'
+      - name: Invalidate CloudFront
+        if: github.ref == 'refs/heads/main'
+        uses: chetan/invalidate-cloudfront-action@v2
+        env:
+          DISTRIBUTION: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION }}
+          PATHS: "/index.html"
+          AWS_REGION: "eu-west-2"
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
