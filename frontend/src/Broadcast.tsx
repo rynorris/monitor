@@ -17,10 +17,21 @@ import { useMediaStream } from "./hooks/useMediaStream";
 import { VideoPlayer } from "./components/VideoPlayer";
 import { CreateBroadcastForm } from "./components/CreateBroadcastForm";
 import * as Msgpack from "@msgpack/msgpack";
+import { useMediaRecorder } from "./hooks/useMediaRecorder";
+import { MEDIA_RECORDER_OPTIONS } from "./media";
 
 export const Broadcast: React.FC = () => {
     const producer = useAppSelector(selectProducer);
     const video = React.useRef<HTMLVideoElement>(null);
+
+    const constraints: MediaStreamConstraints = {
+        video: {
+            width: 320,
+            height: 240,
+            frameRate: 10.0,
+            facingMode: "environment",
+        },
+    };
 
     const handleSegment = React.useCallback(
         (ev: BlobEvent) => {
@@ -48,16 +59,6 @@ export const Broadcast: React.FC = () => {
         [producer]
     );
 
-    const rec = React.useRef<MediaRecorder>();
-
-    const constraints: MediaStreamConstraints = {
-        video: {
-            width: 320,
-            height: 240,
-            frameRate: 10.0,
-            facingMode: "environment",
-        },
-    };
     const stream = useMediaStream(constraints);
 
     React.useEffect(() => {
@@ -66,36 +67,7 @@ export const Broadcast: React.FC = () => {
         }
     }, [stream, video]);
 
-    React.useEffect(() => {
-        if (stream == null) {
-            return;
-        }
-
-        const handle = setInterval(() => {
-            try {
-                if (rec.current != null && rec.current.state === "recording") {
-                    rec.current.stop();
-                }
-
-                rec.current = new MediaRecorder(stream, {
-                    mimeType: 'video/webm; codecs="vp9"',
-                    bitsPerSecond: 200000,
-                });
-                rec.current.ondataavailable = handleSegment;
-                rec.current.start();
-            } catch (e: unknown) {
-                console.error("Failed to load media stream", e);
-            }
-        }, 1000);
-
-        return () => {
-            clearInterval(handle);
-            if (rec.current?.state === "recording") {
-                rec.current?.stop();
-            }
-            rec.current?.stream?.getTracks()?.forEach((track) => track.stop());
-        };
-    }, [handleSegment, stream]);
+    useMediaRecorder(stream, handleSegment, MEDIA_RECORDER_OPTIONS);
 
     const { isOpen, onOpen, onClose } = useDisclosure();
 
