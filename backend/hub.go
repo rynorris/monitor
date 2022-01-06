@@ -51,8 +51,10 @@ func (h *Hub) run() {
 			case Subscribe:
 				h.storage.Subscribe(msg.Client, msg.StreamId)
 				success := &ApiMessage{
-					Type:     "subscribe-success",
-					StreamId: msg.StreamId,
+					Type: "subscribe-success",
+					SubscribeSuccess: &SubscribeSuccessMsg{
+						StreamId: msg.StreamId,
+					},
 				}
 				msg.Client.send <- success
 			case Unsubscribe:
@@ -60,7 +62,7 @@ func (h *Hub) run() {
 			}
 
 		case msg := <-h.broadcast:
-			for _, client := range h.storage.Subscribers(msg.StreamId) {
+			for _, client := range h.storage.Subscribers(msg.EncryptedData.StreamId) {
 				select {
 				case client.send <- msg:
 					// Sent

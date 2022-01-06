@@ -5,11 +5,33 @@ type ApiMessage struct {
 
 	Type string `msgpack:"type"`
 
-	StreamId string `msgpack:"streamId"`
+	Subscribe        *SubscribeMsg        `msgpack:"subscribe"`
+	Unsubscribe      *UnsubscribeMsg      `msgpack:"unsubscribe"`
+	SubscribeSuccess *SubscribeSuccessMsg `msgpack:"subscribeSuccess"`
+	SubscribeFailure *SubscribeFailureMsg `msgpack:"subscribeFailure"`
+	EncryptedData    *EncryptedDataMsg    `msgpack:"encryptedData"`
+}
 
+type SubscribeMsg struct {
+	StreamId string `msgpack:"streamId"`
+}
+
+type UnsubscribeMsg struct {
+	StreamId string `msgpack:"streamId"`
+}
+
+type SubscribeSuccessMsg struct {
+	StreamId string `msgpack:"streamId"`
+}
+
+type SubscribeFailureMsg struct {
+	StreamId string `msgpack:"streamId"`
+	Reason   string `msgpack:"reason"`
+}
+
+type EncryptedDataMsg struct {
+	StreamId  string `msgpack:"streamId"`
 	Iv        []byte `msgpack:"iv"`
 	Data      []byte `msgpack:"data"`
 	Signature []byte `msgpack:"signature"`
-
-	Reason string `msgpack:"reason"`
 }

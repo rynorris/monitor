@@ -73,7 +73,7 @@ func (s *inMemoryStorage) Unsubscribe(client *Client, streamId string) {
 
 func (s *inMemoryStorage) Subscriptions(client *Client) []string {
 	if data, ok := s.clients[client]; ok {
-		subs := make([]string, len(data.Subscriptions))
+		subs := make([]string, 0, len(data.Subscriptions))
 		for sub := range data.Subscriptions {
 			subs = append(subs, sub)
 		}
@@ -85,7 +85,7 @@ func (s *inMemoryStorage) Subscriptions(client *Client) []string {
 
 func (s *inMemoryStorage) Subscribers(streamId string) []*Client {
 	if data, ok := s.streams[streamId]; ok {
-		subs := make([]*Client, len(data.Subscribers))
+		subs := make([]*Client, 0, len(data.Subscribers))
 		for sub := range data.Subscribers {
 			subs = append(subs, sub)
 		}

@@ -3,37 +3,32 @@
  * These are used to communicate with the server.
  */
 export type ApiMessage =
-    | EncryptedData
-    | Subscribe
-    | SubscribeSuccess
-    | SubscribeFailure
-    | Unsubscribe;
+    | { type: "encrypted-data", encryptedData: EncryptedDataMsg }
+    | { type: "subscribe", subscribe: SubscribeMsg }
+    | { type: "unsubscribe", unsubscribe: UnsubscribeMsg }
+    | { type: "subscribe-success", subscribeSuccess: SubscribeSuccessMsg }
+    | { type: "subscribe-failure", subscribeFailure: SubscribeFailureMsg };
 
-export interface EncryptedData {
-    type: "encrypted-data";
+export interface EncryptedDataMsg {
     streamId: string;
     iv: ArrayBufferView;
     data: ArrayBufferView;
     signature: ArrayBufferView;
 }
 
-export interface Subscribe {
-    type: "subscribe";
+export interface SubscribeMsg {
     streamId: string;
 }
 
-export interface Unsubscribe {
-    type: "unsubscribe";
+export interface UnsubscribeMsg {
     streamId: string;
 }
 
-export interface SubscribeSuccess {
-    type: "subscribe-success";
+export interface SubscribeSuccessMsg {
     streamId: string;
 }
 
-export interface SubscribeFailure {
-    type: "subscribe-failure";
+export interface SubscribeFailureMsg {
     streamId: string;
     reason: string;
 }

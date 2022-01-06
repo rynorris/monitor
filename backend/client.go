@@ -90,14 +90,14 @@ func (c *Client) readPump() {
 			c.hub.control <- &ControlMsg{
 				Type:     Subscribe,
 				Client:   c,
-				StreamId: msg.StreamId,
+				StreamId: msg.Subscribe.StreamId,
 			}
 
 		case "unsubscribe":
 			c.hub.control <- &ControlMsg{
 				Type:     Unsubscribe,
 				Client:   c,
-				StreamId: msg.StreamId,
+				StreamId: msg.Unsubscribe.StreamId,
 			}
 
 		case "encrypted-data":

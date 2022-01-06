@@ -1,4 +1,4 @@
-import { ApiMessage, EncryptedData } from "./api";
+import { ApiMessage, EncryptedDataMsg } from "./api";
 import {
     decrypt,
     encrypt,
@@ -110,7 +110,7 @@ export class Client {
         }
 
         const encryptedData = await pack(producer, data);
-        this.sendMessage(encryptedData);
+        this.sendMessage({ type: "encrypted-data", encryptedData });
     }
 
     private async handleMessage(ev: MessageEvent<any>) {
@@ -120,28 +120,28 @@ export class Client {
                 throw new Error("Received subscribe message from server");
             case "subscribe-failure":
                 console.error(
-                    `Failed to subscribe to stream ${msg.streamId}: ${msg.reason}`
+                    `Failed to subscribe to stream ${msg.subscribeFailure.streamId}: ${msg.subscribeFailure.reason}`
                 );
-                this.streams[msg.streamId] = "disconnected";
+                this.streams[msg.subscribeFailure.streamId] = "disconnected";
                 break;
             case "subscribe-success":
                 console.log(
-                    `Successfully subscribed to stream ${msg.streamId}`
+                    `Successfully subscribed to stream ${msg.subscribeSuccess.streamId}`
                 );
-                this.streams[msg.streamId] = "connected";
+                this.streams[msg.subscribeSuccess.streamId] = "connected";
                 break;
             case "encrypted-data":
-                const handlers = this.handlers[msg.streamId] ?? [];
+                const handlers = this.handlers[msg.encryptedData.streamId] ?? [];
                 if (handlers.length === 0) {
                     break;
                 }
 
-                const consumer = this.consumers[msg.streamId];
+                const consumer = this.consumers[msg.encryptedData.streamId];
                 if (consumer == null) {
                     break;
                 }
 
-                const data = await unpack(consumer, msg);
+                const data = await unpack(consumer, msg.encryptedData);
 
                 handlers.forEach((h) => h(data));
 
@@ -162,7 +162,7 @@ export class Client {
             const handlers = this.handlers[streamId] ?? [];
             if (handlers.length === 0) {
                 console.log(`Disconnecting from stream ${streamId}`);
-                this.sendMessage({ type: "unsubscribe", streamId });
+                this.sendMessage({ type: "unsubscribe", unsubscribe: { streamId } });
                 delete this.streams[streamId];
             }
         });
@@ -174,7 +174,7 @@ export class Client {
             if (status === "disconnected") {
                 console.log(`Connecting to stream ${streamId}`);
                 this.streams[streamId] = "pending";
-                this.sendMessage({ type: "subscribe", streamId });
+                this.sendMessage({ type: "subscribe", subscribe: { streamId } });
             }
         });
     }
@@ -267,8 +267,8 @@ export async function newStream(name: string): Promise<StreamProducer> {
 
 export async function pack(
     producer: StreamProducer,
-    data: BufferSource
-): Promise<EncryptedData> {
+    data: BufferSource,
+): Promise<EncryptedDataMsg> {
     const { streamId, encryptionKey, signingKeyPair } = producer;
     const iv = window.crypto.getRandomValues(new Uint8Array(12));
     const encryptedData = await encrypt(encryptionKey, iv, data);
@@ -276,7 +276,6 @@ export async function pack(
     const signature = await sign(signingKeyPair.privateKey!, encryptedData);
 
     return {
-        type: "encrypted-data",
         streamId,
         iv,
         data: new Uint8Array(encryptedData),
@@ -286,7 +285,7 @@ export async function pack(
 
 export async function unpack(
     consumer: StreamConsumer,
-    encryptedMessage: EncryptedData
+    encryptedMessage: EncryptedDataMsg,
 ): Promise<ArrayBuffer> {
     const { encryptionKey, signingPublicKey } = consumer;
     const { iv, data, signature } = encryptedMessage;
