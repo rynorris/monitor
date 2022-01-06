@@ -9,7 +9,10 @@ export type ApiMessage =
     | { type: "subscribe-success", subscribeSuccess: StreamMsg }
     | { type: "subscribe-failure", subscribeFailure: SubscribeFailureMsg }
     | { type: "start-broadcasting", startBroadcasting: StreamMsg }
-    | { type: "stop-broadcasting", stopBroadcasting: StreamMsg };
+    | { type: "stop-broadcasting", stopBroadcasting: StreamMsg }
+    | { type: "pause-broadcasting", pauseBroadcasting: StreamMsg }
+    | { type: "unpause-broadcasting", unpauseBroadcasting: StreamMsg }
+    | { type: "stream-stats", streamStats: StreamStatsMsg };
 
 export interface StreamMsg {
     streamId: string;
@@ -24,6 +27,10 @@ export interface EncryptedDataMsg extends StreamMsg {
 export interface SubscribeFailureMsg extends StreamMsg {
     streamId: string;
     reason: string;
+}
+
+export interface StreamStatsMsg extends StreamMsg {
+    subscribers: number;
 }
 
 /**

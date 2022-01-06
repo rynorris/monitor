@@ -7,7 +7,10 @@ export const StatusIndicator: React.FC = () => {
     const connected = useAppSelector(selectConnected);
     const broadcasting = useAppSelector(selectBroadcasting);
 
-    const text = !connected ? "Connecting..." : broadcasting ? "Broadcasting" : "Connected";
+    const text = !connected ? "Connecting..."
+        : broadcasting === "yes" ? "Broadcasting"
+            : broadcasting === "paused" ? "Idle"
+                : "Connected";
 
     return (
         <Badge colorScheme={connected ? "green" : "gray"}>{text}</Badge>

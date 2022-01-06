@@ -1,4 +1,4 @@
-import { ApiMessage, EncryptedDataMsg } from "./api";
+import { ApiMessage, EncryptedDataMsg, StreamStatsMsg } from "./api";
 import {
     decrypt,
     encrypt,
@@ -35,6 +35,7 @@ export function getClient(): Client {
 export class Client {
     public onConnect?: () => void;
     public onDisconnect?: () => void;
+    public onStats?: (stats: StreamStatsMsg) => void;
 
     private ws?: PersistentWebSocket;
     private streams: Record<string, StreamStatus> = {};
@@ -111,6 +112,14 @@ export class Client {
         this.sendMessage({ type: "stop-broadcasting", stopBroadcasting: { streamId } });
     }
 
+    public pauseBroadcasting(streamId: string) {
+        this.sendMessage({ type: "pause-broadcasting", pauseBroadcasting: { streamId } });
+    }
+
+    public unpauseBroadcasting(streamId: string) {
+        this.sendMessage({ type: "unpause-broadcasting", unpauseBroadcasting: { streamId } });
+    }
+
     public async broadcast(streamId: string, data: BufferSource) {
         const producer = this.producers[streamId];
         if (producer == null) {
@@ -153,6 +162,9 @@ export class Client {
 
                 handlers.forEach((h) => h(data));
 
+                break;
+            case "stream-stats":
+                this.onStats?.(msg.streamStats);
                 break;
             default:
                 console.log(`Ignoring unknown message of type: ${msg.type}`);

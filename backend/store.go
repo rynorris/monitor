@@ -1,5 +1,7 @@
 package main
 
+import "log"
+
 type Storage interface {
 	Register(client *Client)
 	Unregister(client *Client)
@@ -11,6 +13,9 @@ type Storage interface {
 
 	StartBroadcasting(client *Client, streamId string)
 	StopBroadcasting(client *Client, streamId string)
+	PauseBroadcasting(client *Client, streamId string)
+	UnpauseBroadcasting(client *Client, streamId string)
+
 	Broadcaster(streamId string) *Client
 	Broadcasting(client *Client) *string
 }
@@ -28,6 +33,7 @@ type clientData struct {
 type streamData struct {
 	Subscribers map[*Client]bool
 	Broadcaster *Client
+	Paused      bool
 }
 
 func NewInMemoryStorage() Storage {
@@ -113,6 +119,28 @@ func (s *inMemoryStorage) StopBroadcasting(client *Client, streamId string) {
 	}
 }
 
+func (s *inMemoryStorage) PauseBroadcasting(client *Client, streamId string) {
+	if data, ok := s.streams[streamId]; ok {
+		if data.Broadcaster != client {
+			log.Printf("Client tried to pause stream %v but isn't the broadcaster!", streamId)
+			return
+		}
+
+		data.Paused = true
+	}
+}
+
+func (s *inMemoryStorage) UnpauseBroadcasting(client *Client, streamId string) {
+	if data, ok := s.streams[streamId]; ok {
+		if data.Broadcaster != client {
+			log.Printf("Client tried to pause stream %v but isn't the broadcaster!", streamId)
+			return
+		}
+
+		data.Paused = false
+	}
+}
+
 func (s *inMemoryStorage) Broadcasting(client *Client) *string {
 	if data, ok := s.clients[client]; ok {
 		return data.Broadcasting
@@ -139,6 +167,7 @@ func (s *inMemoryStorage) ensureStream(streamId string) {
 	if _, ok := s.streams[streamId]; !ok {
 		s.streams[streamId] = &streamData{
 			Subscribers: make(map[*Client]bool),
+			Paused:      false,
 		}
 	}
 }

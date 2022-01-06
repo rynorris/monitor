@@ -19,6 +19,8 @@ const (
 	Unsubscribe
 	StartBroadcasting
 	StopBroadcasting
+	PauseBroadcasting
+	UnpauseBroadcasting
 )
 
 type ControlMsg struct {
@@ -57,14 +59,23 @@ func (h *Hub) run() {
 					},
 				}
 				msg.Client.send <- success
+				h.sendStats(msg.StreamId)
 			case Unsubscribe:
 				h.storage.Unsubscribe(msg.Client, msg.StreamId)
+				h.sendStats(msg.StreamId)
 
 			case StartBroadcasting:
 				h.storage.StartBroadcasting(msg.Client, msg.StreamId)
+				h.sendStats(msg.StreamId)
 
 			case StopBroadcasting:
 				h.storage.StopBroadcasting(msg.Client, msg.StreamId)
+
+			case PauseBroadcasting:
+				h.storage.PauseBroadcasting(msg.Client, msg.StreamId)
+
+			case UnpauseBroadcasting:
+				h.storage.UnpauseBroadcasting(msg.Client, msg.StreamId)
 
 			default:
 				log.Printf("Ignoring unknown control message: %v", msg.Type)
@@ -79,6 +90,20 @@ func (h *Hub) run() {
 					log.Printf("Client send channel is full: %v", client)
 				}
 			}
+		}
+	}
+}
+
+func (h *Hub) sendStats(streamId string) {
+	if b := h.storage.Broadcaster(streamId); b != nil {
+		b.send <- &ApiMessage{
+			Type: "stream-stats",
+			StreamStats: &StreamStatsMsg{
+				StreamMsg: StreamMsg{
+					StreamId: streamId,
+				},
+				Subscribers: len(h.storage.Subscribers(streamId)),
+			},
 		}
 	}
 }

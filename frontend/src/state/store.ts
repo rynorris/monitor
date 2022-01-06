@@ -4,6 +4,7 @@ import consumersSlice from "./consumersSlice";
 import producerSlice from "./producerSlice";
 import statusSlice from "./statusSlice";
 import layoutSlice from "./layoutSlice";
+import statsSlice from "./statsSlice";
 import { bootstrapClient } from "./thunks";
 
 export const store = configureStore({
@@ -12,6 +13,7 @@ export const store = configureStore({
         producer: producerSlice,
         status: statusSlice,
         layout: layoutSlice,
+        stats: statsSlice,
     },
 });
 

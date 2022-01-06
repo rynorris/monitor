@@ -18,13 +18,19 @@ import { VideoPlayer } from "./components/VideoPlayer";
 import { CreateBroadcastForm } from "./components/CreateBroadcastForm";
 import * as Msgpack from "@msgpack/msgpack";
 import { useMediaRecorder } from "./hooks/useMediaRecorder";
+import { useAsRef } from "./hooks/useAsRef";
 import { MEDIA_RECORDER_OPTIONS } from "./media";
 import { hideToolbars, toggleToolbars } from "./state/layoutSlice";
-import { broadcasting, notBroadcasting } from "./state/statusSlice";
+import { broadcasting, notBroadcasting, pauseBroadcasting, selectBroadcasting } from "./state/statusSlice";
+import { selectStreamStats } from "./state/statsSlice";
 
 export const Broadcast: React.FC = () => {
     const dispatch = useAppDispatch();
     const producer = useAppSelector(selectProducer);
+    const stats = useAppSelector(selectStreamStats);
+    const broadcastingState = useAppSelector(selectBroadcasting);
+    const stateRef = useAsRef(broadcastingState);
+
     const video = React.useRef<HTMLVideoElement>(null);
 
     React.useEffect(() => {
@@ -43,24 +49,38 @@ export const Broadcast: React.FC = () => {
         }
     }, [dispatch, producer]);
 
+    React.useEffect(() => {
+        if (producer == null) {
+            return;
+        }
+
+        if (stats?.subscribers === 0) {
+            getClient().pauseBroadcasting(producer.streamId);
+            dispatch(pauseBroadcasting());
+        } else if (broadcastingState === "paused") {
+            getClient().unpauseBroadcasting(producer.streamId);
+            dispatch(broadcasting());
+        }
+    }, [stats, producer, broadcastingState, dispatch]);
+
     const [date, setDate] = React.useState<Date>(new Date());
     useInterval(() => {
         setDate(new Date());
     }, 1000);
 
-    const constraints: MediaStreamConstraints = {
+    const constraints: MediaStreamConstraints = React.useMemo(() => ({
         video: {
             width: 320,
             height: 240,
             frameRate: 10.0,
             facingMode: "environment",
         },
-    };
+    }), []);
 
     const handleSegment = React.useCallback(
         (ev: BlobEvent) => {
             (async () => {
-                if (producer == null) {
+                if (producer == null || stateRef.current === "paused") {
                     return;
                 }
 
@@ -81,7 +101,7 @@ export const Broadcast: React.FC = () => {
             };
             fr.readAsDataURL(ev.data);
         },
-        [producer]
+        [producer, stateRef]
     );
 
     const stream = useMediaStream(constraints);
@@ -115,7 +135,7 @@ export const Broadcast: React.FC = () => {
             <VideoPlayer
                 videoRef={video}
                 topText={topText}
-                bottomText={producer?.name}
+                bottomText={`${producer?.name} - ${stats?.subscribers ?? 0} viewers`}
                 onClick={() => dispatch(toggleToolbars())}
             />
             <Flex direction="column" alignItems="center" padding={2}>

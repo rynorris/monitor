@@ -16,6 +16,7 @@ import {
     save,
 } from "./persistence";
 import { setProducer } from "./producerSlice";
+import { setStats } from "./statsSlice";
 import { connect, disconnect } from "./statusSlice";
 
 export const bootstrapClient = createAsyncThunk(
@@ -24,6 +25,7 @@ export const bootstrapClient = createAsyncThunk(
         const client = getClient();
         client.onConnect = () => dispatch(connect());
         client.onDisconnect = () => dispatch(disconnect());
+        client.onStats = stats => dispatch(setStats(stats));
 
         const frozenConsumers: FrozenConsumer[] = load(
             CONSUMERS_STORAGE_KEY,

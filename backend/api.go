@@ -10,10 +10,14 @@ type ApiMessage struct {
 	SubscribeSuccess *StreamMsg           `msgpack:"subscribeSuccess"`
 	SubscribeFailure *SubscribeFailureMsg `msgpack:"subscribeFailure"`
 
-	StartBroadcasting *StreamMsg `msgpack:"startBroadcasting"`
-	StopBroadcasting  *StreamMsg `msgpack:"stopBroadcasting"`
+	StartBroadcasting   *StreamMsg `msgpack:"startBroadcasting"`
+	StopBroadcasting    *StreamMsg `msgpack:"stopBroadcasting"`
+	PauseBroadcasting   *StreamMsg `msgpack:"pauseBroadcasting"`
+	UnpauseBroadcasting *StreamMsg `msgpack:"unpauseBroadcasting"`
 
 	EncryptedData *EncryptedDataMsg `msgpack:"encryptedData"`
+
+	StreamStats *StreamStatsMsg `msgpack:"streamStats"`
 }
 
 type StreamMsg struct {
@@ -30,4 +34,9 @@ type EncryptedDataMsg struct {
 	Iv        []byte `msgpack:"iv"`
 	Data      []byte `msgpack:"data"`
 	Signature []byte `msgpack:"signature"`
+}
+
+type StreamStatsMsg struct {
+	StreamMsg
+	Subscribers int `msgpack:"subscribers"`
 }

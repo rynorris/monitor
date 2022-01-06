@@ -11,6 +11,7 @@ export function useMediaRecorder(
         if (stream == null) {
             return;
         }
+        console.log("NEW RECORDER", stream);
 
         const handle = setInterval(() => {
             try {
