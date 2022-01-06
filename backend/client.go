@@ -100,8 +100,25 @@ func (c *Client) readPump() {
 				StreamId: msg.Unsubscribe.StreamId,
 			}
 
+		case "start-broadcasting":
+			c.hub.control <- &ControlMsg{
+				Type:     StartBroadcasting,
+				Client:   c,
+				StreamId: msg.StartBroadcasting.StreamId,
+			}
+
+		case "stop-broadcasting":
+			c.hub.control <- &ControlMsg{
+				Type:     StopBroadcasting,
+				Client:   c,
+				StreamId: msg.StopBroadcasting.StreamId,
+			}
+
 		case "encrypted-data":
 			c.hub.broadcast <- msg
+
+		default:
+			log.Printf("Ignoring unknown message: %v", msg.Type)
 		}
 	}
 }

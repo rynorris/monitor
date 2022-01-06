@@ -28,16 +28,19 @@ export const Broadcast: React.FC = () => {
     const video = React.useRef<HTMLVideoElement>(null);
 
     React.useEffect(() => {
-        if (producer != null) {
+        const streamId = producer?.streamId;
+        if (streamId != null) {
+            getClient().startBroadcasting(streamId);
             dispatch(broadcasting());
             dispatch(hideToolbars());
+
+            return () => {
+                getClient().stopBroadcasting(streamId);
+                dispatch(notBroadcasting());
+            };
         } else {
             dispatch(notBroadcasting());
         }
-
-        return () => {
-            dispatch(notBroadcasting());
-        };
     }, [dispatch, producer]);
 
     const [date, setDate] = React.useState<Date>(new Date());

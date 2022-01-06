@@ -4,31 +4,24 @@
  */
 export type ApiMessage =
     | { type: "encrypted-data", encryptedData: EncryptedDataMsg }
-    | { type: "subscribe", subscribe: SubscribeMsg }
-    | { type: "unsubscribe", unsubscribe: UnsubscribeMsg }
-    | { type: "subscribe-success", subscribeSuccess: SubscribeSuccessMsg }
-    | { type: "subscribe-failure", subscribeFailure: SubscribeFailureMsg };
+    | { type: "subscribe", subscribe: StreamMsg }
+    | { type: "unsubscribe", unsubscribe: StreamMsg }
+    | { type: "subscribe-success", subscribeSuccess: StreamMsg }
+    | { type: "subscribe-failure", subscribeFailure: SubscribeFailureMsg }
+    | { type: "start-broadcasting", startBroadcasting: StreamMsg }
+    | { type: "stop-broadcasting", stopBroadcasting: StreamMsg };
 
-export interface EncryptedDataMsg {
+export interface StreamMsg {
     streamId: string;
+}
+
+export interface EncryptedDataMsg extends StreamMsg {
     iv: ArrayBufferView;
     data: ArrayBufferView;
     signature: ArrayBufferView;
 }
 
-export interface SubscribeMsg {
-    streamId: string;
-}
-
-export interface UnsubscribeMsg {
-    streamId: string;
-}
-
-export interface SubscribeSuccessMsg {
-    streamId: string;
-}
-
-export interface SubscribeFailureMsg {
+export interface SubscribeFailureMsg extends StreamMsg {
     streamId: string;
     reason: string;
 }

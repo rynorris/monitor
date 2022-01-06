@@ -52,13 +52,22 @@ func (h *Hub) run() {
 				h.storage.Subscribe(msg.Client, msg.StreamId)
 				success := &ApiMessage{
 					Type: "subscribe-success",
-					SubscribeSuccess: &SubscribeSuccessMsg{
+					SubscribeSuccess: &StreamMsg{
 						StreamId: msg.StreamId,
 					},
 				}
 				msg.Client.send <- success
 			case Unsubscribe:
 				h.storage.Unsubscribe(msg.Client, msg.StreamId)
+
+			case StartBroadcasting:
+				h.storage.StartBroadcasting(msg.Client, msg.StreamId)
+
+			case StopBroadcasting:
+				h.storage.StopBroadcasting(msg.Client, msg.StreamId)
+
+			default:
+				log.Printf("Ignoring unknown control message: %v", msg.Type)
 			}
 
 		case msg := <-h.broadcast:

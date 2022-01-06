@@ -103,6 +103,14 @@ export class Client {
         this.synchronize();
     }
 
+    public startBroadcasting(streamId: string) {
+        this.sendMessage({ type: "start-broadcasting", startBroadcasting: { streamId } });
+    }
+
+    public stopBroadcasting(streamId: string) {
+        this.sendMessage({ type: "stop-broadcasting", stopBroadcasting: { streamId } });
+    }
+
     public async broadcast(streamId: string, data: BufferSource) {
         const producer = this.producers[streamId];
         if (producer == null) {
