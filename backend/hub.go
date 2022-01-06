@@ -4,29 +4,36 @@ import (
 	"log"
 )
 
-type ClientAndStream struct {
-	client   *Client
-	streamId string
+type Hub struct {
+	register   chan *Client
+	unregister chan *Client
+
+	control   chan *ControlMsg
+	broadcast chan *ApiMessage
+
+	storage Storage
 }
 
-type Hub struct {
-	register    chan *Client
-	unregister  chan *Client
-	subscribe   chan ClientAndStream
-	unsubscribe chan ClientAndStream
-	clients     map[*Client]map[string]bool
+const (
+	Subscribe = iota
+	Unsubscribe
+	StartBroadcasting
+	StopBroadcasting
+)
 
-	broadcast chan *ApiMessage
+type ControlMsg struct {
+	Type     int
+	Client   *Client
+	StreamId string
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		register:    make(chan *Client, 10),
-		unregister:  make(chan *Client, 10),
-		subscribe:   make(chan ClientAndStream, 10),
-		unsubscribe: make(chan ClientAndStream, 10),
-		clients:     make(map[*Client]map[string]bool),
-		broadcast:   make(chan *ApiMessage, 100),
+		register:   make(chan *Client, 10),
+		unregister: make(chan *Client, 10),
+		control:    make(chan *ControlMsg, 10),
+		broadcast:  make(chan *ApiMessage, 100),
+		storage:    NewInMemoryStorage(),
 	}
 }
 
@@ -34,35 +41,31 @@ func (h *Hub) run() {
 	for {
 		select {
 		case c := <-h.register:
-			h.clients[c] = make(map[string]bool)
+			h.storage.Register(c)
 
 		case c := <-h.unregister:
-			delete(h.clients, c)
+			h.storage.Unregister(c)
 
-		case cs := <-h.subscribe:
-			if subscriptions, ok := h.clients[cs.client]; ok {
-				subscriptions[cs.streamId] = true
+		case msg := <-h.control:
+			switch msg.Type {
+			case Subscribe:
+				h.storage.Subscribe(msg.Client, msg.StreamId)
 				success := &ApiMessage{
 					Type:     "subscribe-success",
-					StreamId: cs.streamId,
+					StreamId: msg.StreamId,
 				}
-				cs.client.send <- success
-			}
-
-		case cs := <-h.unsubscribe:
-			if subscriptions, ok := h.clients[cs.client]; ok {
-				delete(subscriptions, cs.streamId)
+				msg.Client.send <- success
+			case Unsubscribe:
+				h.storage.Unsubscribe(msg.Client, msg.StreamId)
 			}
 
 		case msg := <-h.broadcast:
-			for client, subscriptions := range h.clients {
-				if _, ok := subscriptions[msg.StreamId]; ok {
-					select {
-						case client.send <- msg:
-							// Sent
-						default:
-							log.Printf("Client send channel is full: %v", client)
-					}
+			for _, client := range h.storage.Subscribers(msg.StreamId) {
+				select {
+				case client.send <- msg:
+					// Sent
+				default:
+					log.Printf("Client send channel is full: %v", client)
 				}
 			}
 		}

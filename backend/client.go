@@ -24,10 +24,9 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	hub           *Hub
-	conn          *websocket.Conn
-	send          chan *ApiMessage
-	subscriptions map[string]bool
+	hub  *Hub
+	conn *websocket.Conn
+	send chan *ApiMessage
 }
 
 func (c *Client) String() string {
@@ -47,10 +46,9 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 func NewClient(hub *Hub, conn *websocket.Conn) *Client {
 	client := &Client{
-		hub:           hub,
-		conn:          conn,
-		send:          make(chan *ApiMessage, 1),
-		subscriptions: make(map[string]bool),
+		hub:  hub,
+		conn: conn,
+		send: make(chan *ApiMessage, 1),
 	}
 
 	log.Printf("New client connected: %v", client)
@@ -89,18 +87,18 @@ func (c *Client) readPump() {
 
 		switch msg.Type {
 		case "subscribe":
-			cs := ClientAndStream{
-				client:   c,
-				streamId: msg.StreamId,
+			c.hub.control <- &ControlMsg{
+				Type:     Subscribe,
+				Client:   c,
+				StreamId: msg.StreamId,
 			}
-			c.hub.subscribe <- cs
 
 		case "unsubscribe":
-			cs := ClientAndStream{
-				client:   c,
-				streamId: msg.StreamId,
+			c.hub.control <- &ControlMsg{
+				Type:     Unsubscribe,
+				Client:   c,
+				StreamId: msg.StreamId,
 			}
-			c.hub.unsubscribe <- cs
 
 		case "encrypted-data":
 			c.hub.broadcast <- msg
