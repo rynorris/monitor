@@ -146,6 +146,9 @@ export class Client {
                 handlers.forEach((h) => h(data));
 
                 break;
+            default:
+                console.log(`Ignoring unknown message of type: ${msg.type}`);
+                break;
         }
     }
 
