@@ -230,7 +230,6 @@ class PersistentWebSocket {
     public close() {
         clearTimeout(this.checkInterval);
         this.ws?.close();
-        this.onclose?.();
     }
 
     private check() {
@@ -254,6 +253,7 @@ class PersistentWebSocket {
         console.log(`Websocket disconnected: ${this.url}`);
         this.connected = false;
         this.ws = null;
+        this.onclose?.();
     }
 
     private handleMessage(ev: MessageEvent<any>) {

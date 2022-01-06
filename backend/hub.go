@@ -46,6 +46,10 @@ func (h *Hub) run() {
 			h.storage.Register(c)
 
 		case c := <-h.unregister:
+			for _, s := range h.storage.Subscriptions(c) {
+				h.storage.Unsubscribe(c, s)
+				h.sendStats(s)
+			}
 			h.storage.Unregister(c)
 
 		case msg := <-h.control:
