@@ -22,7 +22,7 @@ import { useAsRef } from "./hooks/useAsRef";
 import { MEDIA_RECORDER_OPTIONS } from "./media";
 import { hideToolbars, toggleToolbars } from "./state/layoutSlice";
 import { broadcasting, notBroadcasting, pauseBroadcasting, selectBroadcasting } from "./state/statusSlice";
-import { selectStreamStats } from "./state/statsSlice";
+import { clearStats, selectStreamStats } from "./state/statsSlice";
 
 export const Broadcast: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -43,6 +43,7 @@ export const Broadcast: React.FC = () => {
             return () => {
                 getClient().stopBroadcasting(streamId);
                 dispatch(notBroadcasting());
+                dispatch(clearStats(streamId))
             };
         } else {
             dispatch(notBroadcasting());
@@ -54,10 +55,10 @@ export const Broadcast: React.FC = () => {
             return;
         }
 
-        if (stats?.subscribers === 0) {
+        if (stats?.subscribers === 0 && broadcastingState === "yes") {
             getClient().pauseBroadcasting(producer.streamId);
             dispatch(pauseBroadcasting());
-        } else if (broadcastingState === "paused") {
+        } else if ((stats?.subscribers ?? 0) > 0 && broadcastingState === "paused") {
             getClient().unpauseBroadcasting(producer.streamId);
             dispatch(broadcasting());
         }

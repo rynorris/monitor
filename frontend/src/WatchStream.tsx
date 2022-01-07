@@ -56,7 +56,9 @@ export const WatchStream: React.FC = () => {
         };
     }, [dispatch]);
 
-    const topText = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
+    const topText = date != null
+        ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date)
+        : undefined;
 
     return (
         <VideoPlayer

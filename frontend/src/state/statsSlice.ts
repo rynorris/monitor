@@ -21,10 +21,13 @@ export const statsSlice = createSlice({
         setStats: (state, action: PayloadAction<StreamStats>) => {
             state.streamStats[action.payload.streamId] = action.payload;
         },
+        clearStats: (state, action: PayloadAction<string>) => {
+            delete state.streamStats[action.payload];
+        },
     }
 })
 
-export const { setStats } = statsSlice.actions;
+export const { setStats, clearStats } = statsSlice.actions;
 
 export const selectStreamStats = (state: RootState) => state.producer.producer != null ? state.stats.streamStats[state.producer.producer.streamId] : undefined;
 
