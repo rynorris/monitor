@@ -30,7 +30,6 @@ export const Home: React.FC = () => {
                 colorScheme="green"
                 width="100%"
                 height="50px"
-                maxW="500px"
             >
                 Start Broadcasting
             </Button>
