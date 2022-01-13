@@ -1,6 +1,8 @@
 package main
 
-import "log"
+import (
+	"log"
+)
 
 type Storage interface {
 	Register(client *Client)
@@ -23,6 +25,7 @@ type Storage interface {
 type inMemoryStorage struct {
 	clients map[*Client]*clientData
 	streams map[string]*streamData
+	metrics Metrics
 }
 
 type clientData struct {
@@ -36,10 +39,11 @@ type streamData struct {
 	Paused      bool
 }
 
-func NewInMemoryStorage() Storage {
+func NewInMemoryStorage(metrics Metrics) Storage {
 	return &inMemoryStorage{
 		clients: make(map[*Client]*clientData),
 		streams: make(map[string]*streamData),
+		metrics: metrics,
 	}
 }
 
@@ -54,6 +58,7 @@ func (s *inMemoryStorage) Unregister(client *Client) {
 		}
 
 		delete(s.clients, client)
+		s.metrics.NumClients(len(s.clients))
 	}
 }
 
@@ -117,6 +122,7 @@ func (s *inMemoryStorage) StopBroadcasting(client *Client, streamId string) {
 	if data, ok := s.streams[streamId]; ok {
 		data.Broadcaster = nil
 	}
+	s.deleteIfEmpty(streamId)
 }
 
 func (s *inMemoryStorage) PauseBroadcasting(client *Client, streamId string) {
@@ -160,6 +166,7 @@ func (s *inMemoryStorage) ensureClient(client *Client) {
 		s.clients[client] = &clientData{
 			Subscriptions: make(map[string]bool),
 		}
+		s.metrics.NumClients(len(s.clients))
 	}
 }
 
@@ -169,6 +176,7 @@ func (s *inMemoryStorage) ensureStream(streamId string) {
 			Subscribers: make(map[*Client]bool),
 			Paused:      false,
 		}
+		s.metrics.NumStreams(len(s.streams))
 	}
 }
 
@@ -176,6 +184,7 @@ func (s *inMemoryStorage) deleteIfEmpty(streamId string) {
 	if data, ok := s.streams[streamId]; ok {
 		if len(data.Subscribers) == 0 && data.Broadcaster == nil {
 			delete(s.streams, streamId)
+			s.metrics.NumStreams(len(s.streams))
 		}
 	}
 }

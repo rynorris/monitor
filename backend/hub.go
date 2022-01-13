@@ -29,13 +29,13 @@ type ControlMsg struct {
 	StreamId string
 }
 
-func NewHub() *Hub {
+func NewHub(storage Storage) *Hub {
 	return &Hub{
 		register:   make(chan *Client, 10),
 		unregister: make(chan *Client, 10),
 		control:    make(chan *ControlMsg, 10),
 		broadcast:  make(chan *ApiMessage, 100),
-		storage:    NewInMemoryStorage(),
+		storage:    storage,
 	}
 }
 

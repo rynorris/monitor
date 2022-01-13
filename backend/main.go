@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/joeycumines/statsd"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -18,7 +19,15 @@ var key = flag.String("key", "", "tls key file")
 func main() {
 	flag.Parse()
 
-	hub := NewHub()
+	statsdClient, err := statsd.New()
+	if err != nil {
+		log.Fatalf("failed to initialize statsd client: %v", err)
+	}
+
+	metrics := NewStatsdMetrics(statsdClient)
+	storage := NewInMemoryStorage(metrics)
+	hub := NewHub(storage)
+
 	go hub.run()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +68,7 @@ func main() {
 
 	go http.ListenAndServe(":http", certManager.HTTPHandler(nil))
 
-	err := server.ListenAndServeTLS("", "")
+	err = server.ListenAndServeTLS("", "")
 	if err != nil {
 		log.Fatal(err)
 	}
