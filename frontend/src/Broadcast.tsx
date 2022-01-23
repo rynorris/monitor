@@ -1,12 +1,16 @@
 import React from "react";
+import { BsMicFill, BsMicMuteFill } from "react-icons/bs";
+import { ImQrcode } from "react-icons/im";
 import { selectProducer } from "./state/producerSlice";
 import { useAppDispatch, useAppSelector } from "./state/store";
 import {
     Button,
     Flex,
+    Grid,
     Modal,
     ModalContent,
     ModalOverlay,
+    useBoolean,
     useDisclosure,
     useInterval,
 } from "@chakra-ui/react";
@@ -30,6 +34,7 @@ export const Broadcast: React.FC = () => {
     const stats = useAppSelector(selectStreamStats);
     const broadcastingState = useAppSelector(selectBroadcasting);
     const stateRef = useAsRef(broadcastingState);
+    const [audioOn, { toggle: toggleAudio }] = useBoolean(true);
 
     const video = React.useRef<HTMLVideoElement>(null);
 
@@ -104,10 +109,12 @@ export const Broadcast: React.FC = () => {
         [producer, stateRef]
     );
 
+    const audioOnRef = useAsRef(audioOn);
+
     const handleAudioSegment = React.useCallback(
         (ev: BlobEvent) => {
             (async () => {
-                if (producer == null || stateRef.current === "paused") {
+                if (producer == null || stateRef.current === "paused" || audioOnRef.current === false) {
                     return;
                 }
 
@@ -123,7 +130,7 @@ export const Broadcast: React.FC = () => {
                 );
             })();
         },
-        [producer, stateRef]
+        [producer, stateRef, audioOnRef]
     );
 
     const videoStream = useMediaStream(videoConstraints);
@@ -145,7 +152,6 @@ export const Broadcast: React.FC = () => {
     }
 
     const buttonStyleProps = {
-        flex: "none",
         colorScheme: "green",
         width: "100%",
         height: "50px",
@@ -162,11 +168,14 @@ export const Broadcast: React.FC = () => {
                 bottomText={`${producer?.name} - ${stats?.subscribers ?? 0} viewers`}
                 onClick={() => dispatch(toggleToolbars())}
             />
-            <Flex direction="column" alignItems="center" padding={2}>
-                <Button onClick={onOpen} {...buttonStyleProps}>
+            <Grid p={2} gap={2} templateColumns={"1fr 1fr"}>
+                <Button leftIcon={<ImQrcode />} onClick={onOpen} {...buttonStyleProps}>
                     My QR Code
                 </Button>
-            </Flex>
+                <Button leftIcon={audioOn ? <BsMicFill /> : <BsMicMuteFill />} onClick={toggleAudio} {...buttonStyleProps}>
+                    {audioOn ? "Audio On" : "Audio Off"}
+                </Button>
+            </Grid>
             <Modal isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay />
                 <ModalContent>
