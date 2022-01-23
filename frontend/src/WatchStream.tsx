@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { VideoSegment } from "./api";
+import { DataMsg } from "./api";
 import { getClient } from "./clients";
 import { VideoPlayer } from "./components/VideoPlayer";
 import * as Msgpack from "@msgpack/msgpack";
@@ -8,6 +8,8 @@ import { useMediaSource } from "./hooks/useMediaSource";
 import { useAppDispatch, useAppSelector } from "./state/store";
 import { selectConsumer } from "./state/consumersSlice";
 import { hideToolbars, showToolbars, toggleToolbars } from "./state/layoutSlice";
+import { useBoolean } from "@chakra-ui/react";
+import { AUDIO_CODEC, VIDEO_CODEC } from "./media";
 
 export const WatchStream: React.FC = () => {
     const { streamId } = useParams();
@@ -15,31 +17,52 @@ export const WatchStream: React.FC = () => {
     const dispatch = useAppDispatch();
     const consumer = useAppSelector(selectConsumer(streamId));
 
+    const [muted, { toggle: toggleMuted }] = useBoolean(true);
     const [date, setDate] = React.useState<Date>();
 
-    const source = useMediaSource();
-    const sourceUrl = React.useMemo(() => {
-        if (source == null) {
+    const videoSource = useMediaSource(VIDEO_CODEC);
+    const audioSource = useMediaSource(AUDIO_CODEC);
+    const videoSrc = React.useMemo(() => {
+        if (videoSource == null) {
             return undefined;
         }
 
-        return URL.createObjectURL(source);
-    }, [source]);
+        return URL.createObjectURL(videoSource);
+    }, [videoSource]);
+
+    const audioSrc = React.useMemo(() => {
+        if (audioSource == null) {
+            return undefined;
+        }
+
+        return URL.createObjectURL(audioSource);
+    }, [audioSource]);
 
     React.useEffect(() => {
-        if (streamId == null || source == null) {
+        if (streamId == null || videoSource == null || audioSource == null) {
             return;
         }
 
         const handleMessage = (data: ArrayBuffer) => {
-            if (source.readyState !== "open") {
-                return;
-            }
-
             (async () => {
-                const msg = Msgpack.decode<VideoSegment>(data) as VideoSegment;
-                source.sourceBuffers[0].appendBuffer(msg.data);
-                setDate(msg.timestamp);
+                const msg = Msgpack.decode(data) as DataMsg;
+                switch (msg.type) {
+                    case "video-segment":
+                        if (videoSource.readyState !== "open") {
+                            return;
+                        }
+
+                        videoSource.sourceBuffers[0].appendBuffer(msg.data);
+                        setDate(msg.timestamp);
+                        break;
+                    case "audio-segment":
+                        if (audioSource.readyState !== "open") {
+                            return;
+                        }
+
+                        audioSource.sourceBuffers[0].appendBuffer(msg.data);
+                        break;
+                }
             })();
         };
 
@@ -47,7 +70,7 @@ export const WatchStream: React.FC = () => {
         client.subscribe(streamId, handleMessage);
 
         return () => client.unsubscribe(streamId, handleMessage);
-    }, [streamId, source, setDate]);
+    }, [streamId, videoSource, audioSource, setDate]);
 
     React.useEffect(() => {
         dispatch(hideToolbars());
@@ -61,11 +84,14 @@ export const WatchStream: React.FC = () => {
         : undefined;
 
     return (
-        <VideoPlayer
-            src={sourceUrl}
-            topText={topText}
-            bottomText={consumer?.name}
-            onClick={() => dispatch(toggleToolbars())}
-        />
+        <>
+            <VideoPlayer
+                src={videoSrc}
+                topText={topText}
+                bottomText={consumer?.name}
+                onClick={() => dispatch(toggleToolbars())}
+            />
+            <audio src={audioSrc} autoPlay={true} muted={muted} />
+        </>
     );
 };

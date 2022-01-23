@@ -37,8 +37,17 @@ export interface StreamStatsMsg extends StreamMsg {
  * Client APIs.
  * These go inside the encrypted data messages, and are opaque to the server.
  */
+
+export type DataMsg = VideoSegment | AudioSegment;
+
 export interface VideoSegment {
-    type: "segment";
+    type: "video-segment";
+    timestamp: Date;
+    data: ArrayBufferView;
+}
+
+export interface AudioSegment {
+    type: "audio-segment";
     timestamp: Date;
     data: ArrayBufferView;
 }

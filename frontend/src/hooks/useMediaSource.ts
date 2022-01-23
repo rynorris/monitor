@@ -1,13 +1,12 @@
 import React from "react";
-import { VIDEO_CODEC } from "../media";
 
-export function useMediaSource() {
+export function useMediaSource(mimeType: string) {
     const [source, setSource] = React.useState<MediaSource>();
 
     React.useEffect(() => {
         const ms = new MediaSource();
         ms.onsourceopen = () => {
-            const videoBuffer = ms.addSourceBuffer(VIDEO_CODEC);
+            const videoBuffer = ms.addSourceBuffer(mimeType);
             videoBuffer.mode = "sequence";
             videoBuffer.onerror = (ev) => console.log("ERROR", ev);
             videoBuffer.onupdateend = () => {
@@ -19,8 +18,8 @@ export function useMediaSource() {
 
                 const start = buffered.start(0);
                 const end = buffered.end(0);
-                if (end - start > 2 && !videoBuffer.updating) {
-                    videoBuffer.remove(start, end - 2);
+                if (end - start > 1 && !videoBuffer.updating) {
+                    videoBuffer.remove(start, end - 1);
                 }
             };
         };
@@ -31,7 +30,7 @@ export function useMediaSource() {
                 ms.endOfStream();
             }
         };
-    }, []);
+    }, [mimeType]);
 
     return source;
 }

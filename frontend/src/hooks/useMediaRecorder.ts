@@ -3,6 +3,7 @@ import React from "react";
 export function useMediaRecorder(
     stream: MediaStream | undefined,
     handleSegment: (ev: BlobEvent) => void,
+    interval: number,
     options?: MediaRecorderOptions
 ) {
     const rec = React.useRef<MediaRecorder>();
@@ -25,7 +26,7 @@ export function useMediaRecorder(
             } catch (e: unknown) {
                 console.error("Failed to load media stream", e);
             }
-        }, 1000);
+        }, interval);
 
         return () => {
             clearInterval(handle);
@@ -34,6 +35,6 @@ export function useMediaRecorder(
             }
             rec.current?.stream?.getTracks()?.forEach((track) => track.stop());
         };
-    }, [handleSegment, stream, options]);
+    }, [handleSegment, stream, options, interval]);
 
 }

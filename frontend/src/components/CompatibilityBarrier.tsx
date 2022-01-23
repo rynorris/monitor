@@ -1,7 +1,7 @@
 import React from "react";
 import { Alert, AlertIcon, Center, Stack, Text } from "@chakra-ui/react";
 
-import { VIDEO_CODEC } from "../media";
+import { AUDIO_CODEC, VIDEO_CODEC } from "../media";
 
 interface CompatibilityCheck {
     name: string;
@@ -14,12 +14,20 @@ const CHECKS: CompatibilityCheck[] = [
         isSupported: () => "MediaSource" in window,
     },
     {
-        name: "Webm recording",
+        name: "Webm/vp9 video recording",
         isSupported: () => MediaRecorder.isTypeSupported(VIDEO_CODEC),
     },
     {
-        name: "Webm playback",
+        name: "Webm/vp9 video playback",
         isSupported: () => window.MediaSource?.isTypeSupported(VIDEO_CODEC),
+    },
+    {
+        name: "Webm/opus audio recording",
+        isSupported: () => MediaRecorder.isTypeSupported(AUDIO_CODEC),
+    },
+    {
+        name: "Webm/opus audio playback",
+        isSupported: () => window.MediaSource?.isTypeSupported(AUDIO_CODEC),
     },
 ];
 

@@ -11,7 +11,7 @@ import {
     useInterval,
 } from "@chakra-ui/react";
 import { getClient } from "./clients";
-import { VideoSegment } from "./api";
+import { AudioSegment, VideoSegment } from "./api";
 import { ShareQRCode } from "./components/ShareQRCode";
 import { useMediaStream } from "./hooks/useMediaStream";
 import { VideoPlayer } from "./components/VideoPlayer";
@@ -19,7 +19,7 @@ import { CreateBroadcastForm } from "./components/CreateBroadcastForm";
 import * as Msgpack from "@msgpack/msgpack";
 import { useMediaRecorder } from "./hooks/useMediaRecorder";
 import { useAsRef } from "./hooks/useAsRef";
-import { MEDIA_RECORDER_OPTIONS } from "./media";
+import { AUDIO_RECORDER_OPTIONS, VIDEO_RECORDER_OPTIONS } from "./media";
 import { hideToolbars, toggleToolbars } from "./state/layoutSlice";
 import { broadcasting, notBroadcasting, pauseBroadcasting, selectBroadcasting } from "./state/statusSlice";
 import { clearStats, selectStreamStats } from "./state/statsSlice";
@@ -69,7 +69,7 @@ export const Broadcast: React.FC = () => {
         setDate(new Date());
     }, 1000);
 
-    const constraints: MediaStreamConstraints = React.useMemo(() => ({
+    const videoConstraints: MediaStreamConstraints = React.useMemo(() => ({
         video: {
             width: 320,
             height: 240,
@@ -78,7 +78,11 @@ export const Broadcast: React.FC = () => {
         },
     }), []);
 
-    const handleSegment = React.useCallback(
+    const audioConstraints: MediaStreamConstraints = React.useMemo(() => ({
+        audio: true,
+    }), []);
+
+    const handleVideoSegment = React.useCallback(
         (ev: BlobEvent) => {
             (async () => {
                 if (producer == null || stateRef.current === "paused") {
@@ -86,7 +90,7 @@ export const Broadcast: React.FC = () => {
                 }
 
                 const msg: VideoSegment = {
-                    type: "segment",
+                    type: "video-segment",
                     timestamp: new Date(),
                     data: new Uint8Array(await ev.data.arrayBuffer()),
                 };
@@ -96,24 +100,43 @@ export const Broadcast: React.FC = () => {
                     Msgpack.encode(msg),
                 );
             })();
-
-            const fr = new FileReader();
-            fr.onload = () => {
-            };
-            fr.readAsDataURL(ev.data);
         },
         [producer, stateRef]
     );
 
-    const stream = useMediaStream(constraints);
+    const handleAudioSegment = React.useCallback(
+        (ev: BlobEvent) => {
+            (async () => {
+                if (producer == null || stateRef.current === "paused") {
+                    return;
+                }
+
+                const msg: AudioSegment = {
+                    type: "audio-segment",
+                    timestamp: new Date(),
+                    data: new Uint8Array(await ev.data.arrayBuffer()),
+                };
+
+                getClient().broadcast(
+                    producer.streamId,
+                    Msgpack.encode(msg),
+                );
+            })();
+        },
+        [producer, stateRef]
+    );
+
+    const videoStream = useMediaStream(videoConstraints);
+    const audioStream = useMediaStream(audioConstraints);
 
     React.useEffect(() => {
-        if (stream != null && video.current != null) {
-            video.current.srcObject = stream;
+        if (videoStream != null && video.current != null) {
+            video.current.srcObject = videoStream;
         }
-    }, [stream, video]);
+    }, [videoStream, video]);
 
-    useMediaRecorder(stream, handleSegment, MEDIA_RECORDER_OPTIONS);
+    useMediaRecorder(videoStream, handleVideoSegment, 1000, VIDEO_RECORDER_OPTIONS);
+    useMediaRecorder(audioStream, handleAudioSegment, 500, AUDIO_RECORDER_OPTIONS);
 
     const { isOpen, onOpen, onClose } = useDisclosure();
 
