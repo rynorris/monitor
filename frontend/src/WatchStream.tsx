@@ -8,7 +8,6 @@ import { useMediaSource } from "./hooks/useMediaSource";
 import { useAppDispatch, useAppSelector } from "./state/store";
 import { selectConsumer } from "./state/consumersSlice";
 import { hideToolbars, showToolbars, toggleToolbars } from "./state/layoutSlice";
-import { useBoolean } from "@chakra-ui/react";
 import { AUDIO_CODEC, VIDEO_CODEC } from "./media";
 
 export const WatchStream: React.FC = () => {
@@ -17,7 +16,6 @@ export const WatchStream: React.FC = () => {
     const dispatch = useAppDispatch();
     const consumer = useAppSelector(selectConsumer(streamId));
 
-    const [muted, { toggle: toggleMuted }] = useBoolean(true);
     const [date, setDate] = React.useState<Date>();
 
     const videoSource = useMediaSource(VIDEO_CODEC);
@@ -86,12 +84,12 @@ export const WatchStream: React.FC = () => {
     return (
         <>
             <VideoPlayer
-                src={videoSrc}
+                videoSrc={videoSrc}
+                audioSrc={audioSrc}
                 topText={topText}
                 bottomText={consumer?.name}
                 onClick={() => dispatch(toggleToolbars())}
             />
-            <audio src={audioSrc} autoPlay={true} muted={muted} />
         </>
     );
 };

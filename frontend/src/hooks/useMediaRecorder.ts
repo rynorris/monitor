@@ -33,7 +33,6 @@ export function useMediaRecorder(
             if (rec.current?.state === "recording") {
                 rec.current?.stop();
             }
-            rec.current?.stream?.getTracks()?.forEach((track) => track.stop());
         };
     }, [handleSegment, stream, options, interval]);
 

@@ -16,8 +16,20 @@ export function useMediaStream(
                 console.error("Failed to load media stream", e);
             }
         })();
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    React.useEffect(() => {
+        return () => {
+            if (stream != null) {
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                    stream.removeTrack(track);
+                });
+            }
+        };
+    }, [stream]);
 
     return stream;
 }
