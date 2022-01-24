@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from "./state/store";
 import {
     Button,
     Flex,
-    Grid,
     Modal,
     ModalContent,
     ModalOverlay,
@@ -168,14 +167,14 @@ export const Broadcast: React.FC = () => {
                 bottomText={`${producer?.name} - ${stats?.subscribers ?? 0} viewers`}
                 onClick={() => dispatch(toggleToolbars())}
             />
-            <Grid p={2} gap={2} templateColumns={"1fr 1fr"}>
+            <Flex p={2} gap={2} justifyContent="center">
                 <Button leftIcon={<ImQrcode />} onClick={onOpen} {...buttonStyleProps}>
                     My QR Code
                 </Button>
                 <Button leftIcon={audioOn ? <BsMicFill /> : <BsMicMuteFill />} onClick={toggleAudio} {...buttonStyleProps}>
                     {audioOn ? "Audio On" : "Audio Off"}
                 </Button>
-            </Grid>
+            </Flex>
             <Modal isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay />
                 <ModalContent>
